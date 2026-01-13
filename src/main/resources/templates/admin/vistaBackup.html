@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Backups</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+	
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f2f6ff;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 10px;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .sidebar img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logout-btn i {
+            margin-right: 5px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        
+        /* ESTILOS DE LA VISTA HIJA ADAPTADOS */
+        :root {
+            --primary-color: #6d3c7c;
+            --success-color: #3b7252;
+            --danger-color: #894841;
+            --warning-color: #f39c12;
+            --info-color: #3498db;
+        }
+        
+        .main { /* Ajuste el fondo del main para el contenido */
+            background-color: #f2f6ff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            flex: 1;
+            padding: 0; /* Eliminar padding del main para que el header-section ocupe todo el ancho */
+            overflow-y: auto;
+        }
+        
+        .header-section {
+            background: linear-gradient(135deg, var(--primary-color), #6d3c7c);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .stats-card {
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .stats-card .icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+        
+        .stats-card.primary {
+            background: linear-gradient(135deg, #27272a 0%, #27272a 100%);
+            color: white;
+        }
+        
+        .stats-card.success {
+            background: linear-gradient(135deg, #2e5c58 0%, #2e5c58 100%);
+            color: white;
+        }
+        
+        .stats-card.danger {
+            background: linear-gradient(135deg, #823d45 0%, #823d45 100%);
+            color: white;
+        }
+        
+        .stats-card.warning {
+            background: linear-gradient(135deg, #7b4e81 0%, #7b4e81 100%);
+            color: white;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 1rem 1.5rem;
+        }
+        
+        .btn-custom {
+            border-radius: 5px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .badge-custom {
+            padding: 0.5rem 0.75rem;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), #34495e);
+            color: white;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+	</style>
+</head>
+<body>
+    <div class="sidebar">
+    <div>
+        <a href="/admin/vistaAdmin">
+            <img src="/images/Logo.png" alt="Logo">
+        </a>
+        <h2>SISTEMA INVENTARIO</h2>
+    </div>  
+    <form action="/logout" method="post">
+        <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </form>
+</div>
+
+<div class="main">
+
+    <div class="header-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-database me-2"></i>
+                        Gestión de Backups
+                    </h1>
+                    <p class="mb-0 mt-2 opacity-75">Sistema de respaldo y restauración de base de datos</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    
+                    <button class="btn btn-light btn-custom" id="btnCrearBackup">
+                        <i class="fas fa-plus me-2"></i>Crear Nuevo Backup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card primary">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0" th:text="${estadisticas?.totalBackups ?: 0}">0</h3>
+                            <p class="mb-0">Total Backups</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="stats-card success">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0" th:text="${estadisticas?.backupsExitosos ?: 0}">0</h3>
+                            <p class="mb-0">Exitosos</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="stats-card danger">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0" th:text="${estadisticas?.backupsFallidos ?: 0}">0</h3>
+                            <p class="mb-0">Fallidos</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="stats-card warning">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0" id="espacioUtilizado">0 MB</h3>
+                            <p class="mb-0">Espacio Utilizado</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-hdd"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Historial de Backups
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="tablaBackups" class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre Archivo</th>
+                                <th>Fecha/Hora</th>
+                                <th>Tipo</th>
+                                <th>Tamaño</th>
+                                <th>Estado</th>
+                                <th>Duración</th>
+                                <th>Tablas</th>
+                                <th>Usuario</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="backup : ${backups}">
+                                <td th:text="${backup.idBackup}">1</td>
+                                <td>
+                                    <i class="fas fa-file-archive me-2 text-primary"></i>
+                                    <span th:text="${backup.nombreArchivo}">backup.sql</span>
+                                </td>
+                                <td th:text="${#temporals.format(backup.fechaBackup, 'dd/MM/yyyy HH:mm')}">
+                                    01/01/2024 10:00
+                                </td>
+                                <td>
+                                    <span class="badge bg-info" th:text="${backup.tipoBackup}">COMPLETO</span>
+                                </td>
+                                <td th:text="${backup.tamanoFormateado}">10 MB</td>
+                                <td>
+                                    <span th:classappend="${backup.estadoBackup == T(com.example.appsistema.model.Backup.EstadoBackup).EXITOSO ? 'bg-success' : (backup.estadoBackup == T(com.example.appsistema.model.Backup.EstadoBackup).FALLIDO ? 'bg-danger' : 'bg-warning')}"
+                                            class="badge badge-custom"
+                                            th:text="${backup.estadoBackup}">
+                                            EXITOSO
+                                    </span>
+                                </td>
+                                <td>
+                                    <span th:if="${backup.duracionSegundos != null && backup.duracionSegundos > 0}"
+                                            th:text="${backup.duracionSegundos + 's'}">
+                                            10s
+                                    </span>
+                                    <span th:if="${backup.duracionSegundos == null || backup.duracionSegundos == 0}">
+                                            -
+                                    </span>
+                                </td>
+                                <td th:text="${backup.numeroTablas ?: '-'}">100</td>
+                                <td>
+                                    <i class="fas fa-user me-1"></i>
+                                    <span th:text="${backup.usuario?.username ?: 'Sistema'}">admin</span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button th:if="${backup.estadoBackup == T(com.example.appsistema.model.Backup.EstadoBackup).EXITOSO}"
+                                                class="btn btn-sm btn-success btn-restaurar" 
+                                                th:data-id="${backup.idBackup}"
+                                                title="Restaurar">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                        <button th:if="${backup.estadoBackup == T(com.example.appsistema.model.Backup.EstadoBackup).EXITOSO}"
+                                                class="btn btn-sm btn-primary btn-descargar" 
+                                                th:data-id="${backup.idBackup}"
+                                                th:data-nombre="${backup.nombreArchivo}"
+                                                title="Descargar">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-info btn-detalles" 
+                                                th:data-id="${backup.idBackup}"
+                                                title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger btn-eliminar" 
+                                                th:data-id="${backup.idBackup}"
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCrearBackup" tabindex="-1" aria-labelledby="modalCrearBackupLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCrearBackupLabel">
+                        <i class="fas fa-plus me-2"></i>Crear Nuevo Backup
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCrearBackup">
+                        <div class="mb-3">
+                            <label for="observaciones" class="form-label">Observaciones (opcional)</label>
+                            <textarea class="form-control" id="observaciones" rows="3" 
+                                        placeholder="Ingrese observaciones sobre este backup..."></textarea>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Se creará un backup completo de la base de datos actual.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmarCrear">
+                        <i class="fas fa-save me-2"></i>Crear Backup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDetallesLabel">
+                        <i class="fas fa-info-circle me-2"></i>Detalles del Backup
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="detallesBackupContent">
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script th:inline="none">
+        // Variables para los modales de Bootstrap
+        let modalCrearBackup;
+        let modalDetalles;
+
+        // Obtener la lista de backups DTO del modelo
+        const backupsJSON = /*[[${backupsJSON}]]*/ [];
+
+        $(document).ready(function() {
+            console.log('Inicializando módulo de backups...');
+            
+            // ===== CORRECCIÓN: Inicializar modales correctamente =====
+            const modalCrearBackupEl = document.getElementById('modalCrearBackup');
+            const modalDetallesEl = document.getElementById('modalDetalles');
+            
+            if (modalCrearBackupEl) {
+                modalCrearBackup = new bootstrap.Modal(modalCrearBackupEl, {
+                    backdrop: 'static',
+                    keyboard: true
+                });
+            }
+            
+            if (modalDetallesEl) {
+                modalDetalles = new bootstrap.Modal(modalDetallesEl, {
+                    backdrop: true,
+                    keyboard: true
+                });
+            }
+            
+            // Inicializar DataTable
+            const tabla = $('#tablaBackups').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                order: [[0, 'desc']], 
+                pageLength: 10,
+                responsive: true
+            });
+            
+            // Formatear espacio utilizado
+            const espacioUtilizado = parseInt(/*[[${estadisticas.espacioUtilizado}]]*/ '0') || 0;
+            $('#espacioUtilizado').text(formatBytes(espacioUtilizado));
+            
+            // ===== CORRECCIÓN: Event Listener para el botón de crear backup =====
+            $('#btnCrearBackup').off('click').on('click', function(e) {
+                e.preventDefault();
+                console.log('Botón crear backup clickeado');
+                
+                // Limpiar el formulario
+                $('#observaciones').val('');
+                
+                // Mostrar el modal
+                if (modalCrearBackup) {
+                    modalCrearBackup.show();
+                } else {
+                    console.error('Modal no inicializado correctamente');
+                    // Fallback: usar jQuery
+                    $('#modalCrearBackup').modal('show');
+                }
+            });
+            
+            // ===== CORRECCIÓN: Event Listener para confirmar creación =====
+            $('#btnConfirmarCrear').off('click').on('click', function(e) {
+                e.preventDefault();
+                confirmarCrearBackup();
+            });
+            
+            // Delegación de eventos para los botones de la tabla
+            $(document).on('click', '.btn-restaurar', function(e) {
+                e.preventDefault();
+                restaurarBackup($(this).data('id'));
+            });
+            
+            $(document).on('click', '.btn-descargar', function(e) {
+                e.preventDefault();
+                descargarBackup($(this).data('id'), $(this).data('nombre'));
+            });
+            
+            $(document).on('click', '.btn-detalles', function(e) {
+                e.preventDefault();
+                verDetalles($(this).data('id'));
+            });
+            
+            $(document).on('click', '.btn-eliminar', function(e) {
+                e.preventDefault();
+                eliminarBackup($(this).data('id'));
+            });
+            
+            // Evento para limpiar el modal cuando se cierra
+            $('#modalCrearBackup').on('hidden.bs.modal', function () {
+                $('#observaciones').val('');
+                $('#btnConfirmarCrear').prop('disabled', false);
+            });
+        });
+
+        // Función de utilería para formatear bytes
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i]; 
+        }
+
+        // 1. Crear Backup
+        function confirmarCrearBackup() {
+            const observaciones = $('#observaciones').val().trim();
+            
+            // Desactivar el botón inmediatamente
+            $('#btnConfirmarCrear').prop('disabled', true);
+            
+            // Ocultar modal de formulario
+            if (modalCrearBackup) {
+                modalCrearBackup.hide();
+            } else {
+                $('#modalCrearBackup').modal('hide');
+            }
+            
+            // Mostrar mensaje de procesamiento
+            Swal.fire({
+                title: 'Procesando Solicitud...',
+                html: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3">El proceso se ejecutará en segundo plano.</p>',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Realizar la petición AJAX
+            $.ajax({
+                url: '/admin/backups/crear',
+                method: 'POST',
+                data: { 
+                    observaciones: observaciones 
+                },
+                timeout: 10000, // 10 segundos de timeout
+                success: function(response) {
+                    console.log('Respuesta del servidor:', response);
+                    
+                    Swal.fire({
+                        title: '¡Proceso Iniciado!', 
+                        text: response.message || 'El backup se está creando en segundo plano.', 
+                        icon: 'success',
+                        timer: 2500,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error en la petición:', {xhr, status, error});
+                    
+                    let errorMsg = 'Error desconocido al iniciar el backup';
+                    
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        errorMsg = xhr.responseText;
+                    } else if (status === 'timeout') {
+                        errorMsg = 'Tiempo de espera agotado. Intente nuevamente.';
+                    }
+                    
+                    Swal.fire({
+                        title: 'Error', 
+                        text: errorMsg, 
+                        icon: 'error',
+                        confirmButtonText: 'Cerrar'
+                    });
+                    
+                    $('#btnConfirmarCrear').prop('disabled', false);
+                },
+                complete: function() {
+                    // Asegurar que el botón se reactive
+                    setTimeout(() => {
+                        $('#btnConfirmarCrear').prop('disabled', false);
+                    }, 3000);
+                }
+            });
+        }
+
+        // 2. Restaurar Backup
+        function restaurarBackup(id) {
+            Swal.fire({
+                title: '⚠️ ¡Advertencia Crítica!',
+                html: '<p class="text-danger fw-bold">Estás a punto de SOBRESCRIBIR TODA la base de datos actual.</p><p>Esta acción es IRREVERSIBLE.</p><p>¿Estás completamente seguro?</p>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#7f8c8d',
+                confirmButtonText: 'Sí, restaurar ahora',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Restaurando Base de Datos...',
+                        html: '<div class="spinner-border text-danger" role="status"></div><p class="mt-3 text-danger fw-bold">NO cierre esta ventana ni actualice la página.</p>',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    $.ajax({
+                        url: '/admin/backups/restaurar/' + id,
+                        method: 'POST',
+                        timeout: 300000, // 5 minutos
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: '¡Restauración Exitosa!', 
+                                    text: response.message, 
+                                    icon: 'success',
+                                    confirmButtonText: 'Aceptar'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error de Restauración', response.message, 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Error Crítico', xhr.responseJSON?.message || 'Error al restaurar la base de datos', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        // 3. Eliminar Backup
+        function eliminarBackup(id) {
+            Swal.fire({
+                title: '¿Eliminar este Backup?',
+                text: 'Se eliminará el registro y el archivo físico. Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#7f8c8d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/admin/backups/eliminar/' + id,
+                        method: 'DELETE',
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: '¡Eliminado!', 
+                                    text: response.message, 
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Error', xhr.responseJSON?.message || 'Error al eliminar el backup', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        // 4. Descargar Backup
+        function descargarBackup(id, nombreArchivo) {
+            // Crear un enlace temporal para forzar la descarga
+            const link = document.createElement('a');
+            link.href = '/admin/backups/descargar/' + id;
+            link.download = nombreArchivo;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Notificación toast
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Descarga iniciada',
+                text: nombreArchivo,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        }
+
+        // 5. Ver Detalles
+        function verDetalles(id) {
+            const backup = backupsJSON.find(b => b.idBackup === id);
+
+            if (!backup) {
+                Swal.fire('Error', 'No se encontraron los detalles del backup.', 'error');
+                return;
+            }
+
+            const estadoClass = backup.estadoBackup === 'EXITOSO' ? 'bg-success' : 
+                            backup.estadoBackup === 'FALLIDO' ? 'bg-danger' : 'bg-warning';
+
+            const detallesHtml = `
+                <table class="table table-bordered table-sm">
+                    <tbody>
+                        <tr><th class="text-start" style="width: 40%;">ID:</th><td>${backup.idBackup}</td></tr>
+                        <tr><th class="text-start">Nombre Archivo:</th><td><code>${backup.nombreArchivo}</code></td></tr>
+                        <tr><th class="text-start">Fecha y Hora:</th><td>${backup.fechaBackupFormateada}</td></tr>
+                        <tr><th class="text-start">Tipo:</th><td><span class="badge bg-info">${backup.tipoBackup}</span></td></tr>
+                        <tr><th class="text-start">Estado:</th><td><span class="badge ${estadoClass}">${backup.estadoBackup}</span></td></tr>
+                        <tr><th class="text-start">Usuario:</th><td><i class="fas fa-user me-1"></i>${backup.usuarioUsername || 'Sistema'}</td></tr>
+                        <tr><th class="text-start">Tamaño:</th><td>${backup.tamanoFormateado}</td></tr>
+                        <tr><th class="text-start">Duración:</th><td>${backup.duracionSegundos ? backup.duracionSegundos + ' segundos' : 'N/A'}</td></tr>
+                        <tr><th class="text-start">Tablas Respaldadas:</th><td>${backup.numeroTablas || 'N/A'}</td></tr>
+                        <tr><th class="text-start">Observaciones:</th><td>${backup.observaciones || '<em class="text-muted">Sin observaciones</em>'}</td></tr>
+                        ${backup.estadoBackup === 'FALLIDO' && backup.observaciones ? 
+                            `<tr><th class="text-start">Detalle del Error:</th><td><pre class="bg-light p-2 text-danger border rounded">${backup.observaciones}</pre></td></tr>` : ''}
+                    </tbody>
+                </table>
+                <div class="alert alert-info mb-0 mt-3">
+                    <small><i class="fas fa-folder me-2"></i><strong>Ruta:</strong> <code>${backup.rutaArchivo}</code></small>
+                </div>
+            `;
+
+            $('#detallesBackupContent').html(detallesHtml);
+            
+            if (modalDetalles) {
+                modalDetalles.show();
+            } else {
+                $('#modalDetalles').modal('show');
+            }
+        }
+</script>
+</body>
+</html>

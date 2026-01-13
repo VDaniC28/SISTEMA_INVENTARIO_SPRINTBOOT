@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Remisión - SISINVEN</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+        /* Estilos de la Vista Madre */
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif; /* Unificamos la fuente principal */
+        }
+
+        :root {
+            --primary-purple: #6d3c7c; /* Colores de la vista hija */
+            --dark-purple: #6d3c7c;
+            --light-purple: #6d3c7c;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f2f6ff; /* Fondo de la vista madre */
+        }
+        
+        /* Aseguramos que el estilo de fondo de la vista hija no anule el body principal */
+        /* body de la vista hija: background-color: #f8f9fa; -> Lo aplicaremos al contenido si es necesario o se deja el del main */
+
+        .sidebar {
+            width: 200px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 10px;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .sidebar img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logout-btn i {
+            margin-right: 5px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            /* El fondo de la vista madre ya está en body: background-color: #f2f6ff; */
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* Estilos adaptados de la Vista Hija (Guía de Remisión) */
+        /* ---------------------------------------------------------------------- */
+
+        /* body { font-family: 'Segoe UI',...; } -> Sobreescrito por 'Inter' en * */
+        
+        .container-fluid { /* Ajuste para el contenido dentro de .main */
+            padding: 0 !important; /* Eliminamos el padding extra si el main ya lo tiene */
+            margin: 0 auto;
+            max-width: 100%;
+        }
+
+        .header-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-icon {
+            color: var(--primary-purple);
+            font-size: 2.5rem;
+            margin-right: 20px;
+        }
+        
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin: 0;
+        }
+        
+        .empresa-badge {
+            background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .content-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+        
+        .section-header {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .section-icon {
+            color: var(--primary-purple);
+            margin-right: 12px;
+            font-size: 1.5rem;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        
+        .custom-table {
+            margin: 0;
+        }
+        
+        .custom-table thead {
+            background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
+            color: white;
+        }
+        
+        .custom-table thead th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            padding: 15px 12px;
+            border: none;
+            white-space: nowrap;
+        }
+        
+        .custom-table tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        .custom-table tbody tr:hover {
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
+        }
+        
+        .custom-table tbody td {
+            padding: 12px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .badge-custom {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .badge-confirmada { background-color: #10b981; color: white; }
+        .badge-completada { background-color: #3b82f6; color: white; }
+        .badge-emitida { background-color: #8b5cf6; color: white; }
+        .badge-anulada { background-color: #ef4444; color: white; }
+        .badge-en-transito { background-color: #f59e0b; color: white; }
+        .badge-recibida { background-color: #10b981; color: white; }
+        
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            margin: 2px;
+            white-space: nowrap;
+        }
+        
+        .btn-purple {
+            background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
+            color: white;
+        }
+        
+        .btn-purple:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+            color: white;
+        }
+        
+        .btn-info-custom {
+            background-color: #06b6d4;
+            color: white;
+        }
+        
+        .btn-info-custom:hover {
+            background-color: #0891b2;
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .btn-danger-custom {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger-custom:hover {
+            background-color: #dc2626;
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .pagination {
+            margin-top: 20px;
+            justify-content: center;
+        }
+        
+        .page-link {
+            color: var(--primary-purple);
+            border-color: #e2e8f0;
+            padding: 8px 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .page-link:hover {
+            background-color: var(--light-purple);
+            border-color: var(--primary-purple);
+            color: white;
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary-purple);
+            border-color: var(--primary-purple);
+        }
+        
+        .page-item.disabled .page-link {
+            color: #cbd5e1;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 0 0.2rem rgba(124, 58, 237, 0.25);
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            padding-left: 45px;
+            border-radius: 25px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .search-box input:focus {
+            border-color: var(--primary-purple);
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-purple);
+        }
+        
+        .nav-tabs {
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 30px;
+        }
+        
+        .nav-tabs .nav-link {
+            color: #64748b;
+            font-weight: 600;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 12px 20px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-purple);
+            border-bottom: 3px solid var(--primary-purple);
+            background: transparent;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-purple);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .btn-close-white {
+            filter: brightness(0) invert(1);
+        }
+        
+        .text-required {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div>
+        <a href="/admin/vistaAdmin">
+            <img src="/images/Logo.png" alt="Logo">
+        </a>
+        <h2>SISTEMA INVENTARIO</h2>
+    </div> 
+    <form action="/logout" method="post">
+        <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </form>
+</div>
+
+<div class="main">
+    <div class="container-fluid py-4">
+        
+        <!-- Header Principal -->
+        <div class="header-container">
+            <div class="header-left">
+                <i class="fas fa-file-invoice header-icon"></i>
+                <h1 class="header-title">GUÍA DE REMISIÓN</h1>
+            </div>
+            <div class="empresa-badge">
+                <i class="fas fa-building me-2"></i>
+                <span th:text="${nombreEmpresa}">Empresa</span>
+            </div>
+        </div>
+        
+        <!-- Contenedor de Gestión -->
+        <div class="content-container">
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-tasks section-icon"></i>
+                    <span>GESTIÓN DE GUÍAS</span>
+                </div>
+            </div>
+            
+            <!-- Tabs de Navegación -->
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ordenes-tab" type="button">
+                        <i class="fas fa-shopping-cart me-2"></i>Órdenes de Compra Pendientes
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#salidas-tab" type="button">
+                        <i class="fas fa-box-open me-2"></i>Salidas de Inventario Pendientes
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#guias-tab" type="button">
+                        <i class="fas fa-file-alt me-2"></i>Guías Generadas
+                    </button>
+                </li>
+            </ul>
+            
+            <!-- Contenido de Tabs -->
+            <div class="tab-content">
+                
+                <!-- Tab: Órdenes de Compra -->
+                <div class="tab-pane fade show active" id="ordenes-tab">
+                    <div th:if="${ordenesPage.totalElements > 0}">
+                        <div class="table-container">
+                            <table class="table custom-table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID Orden</th>
+                                        <th>Fecha Orden</th>
+                                        <th>Proveedor</th>
+                                        <th>Almacén Destino</th>
+                                        <th>Monto Total</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="orden : ${ordenesPage.content}">
+                                        <td th:text="${orden.idOrdenes}"></td>
+                                        <td th:text="${#temporals.format(orden.fechaOrden, 'dd/MM/yyyy')}"></td>
+                                        <td th:text="${orden.proveedor != null ? orden.proveedor.nombreProveedor : 'N/A'}"></td>
+                                        <td th:text="${orden.almacen != null ? orden.almacen.nombreAlmacen : 'N/A'}"></td>
+                                        <td th:text="'S/ ' + ${#numbers.formatDecimal(orden.montoSubtotal + orden.impuestos - orden.descuentos, 1, 2)}"></td>
+                                        <td><span class="badge badge-custom badge-confirmada" th:text="${orden.estadoOrden}"></span></td>
+                                        <td>
+                                            <button class="btn btn-purple btn-action btn-sm" 
+                                                    th:attr="data-id-orden=${orden.idOrdenes}"
+                                                    onclick="abrirModalOrden(this)">
+                                                <i class="fas fa-file-invoice me-1"></i>Generar Guía
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Paginación Órdenes -->
+                       <nav th:if="${ordenesPage.totalPages > 1}">
+                            <ul class="pagination">
+                                <li class="page-item" th:classappend="${ordenesPage.first} ? 'disabled'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/guias-remision(pageOrdenes=${ordenesPage.number - 1}, 
+                                                                        sizeOrdenes=${ordenesPage.size},
+                                                                        pageSalidas=${pageSalidas},
+                                                                        sizeSalidas=${sizeSalidas},
+                                                                        pageGuias=${pageGuias},
+                                                                        sizeGuias=${sizeGuias})}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item" 
+                                    th:each="i : ${#numbers.sequence(0, ordenesPage.totalPages - 1)}"
+                                    th:classappend="${i == ordenesPage.number} ? 'active'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/guias-remision(pageOrdenes=${i}, 
+                                                                        sizeOrdenes=${ordenesPage.size},
+                                                                        pageSalidas=${pageSalidas},
+                                                                        sizeSalidas=${sizeSalidas},
+                                                                        pageGuias=${pageGuias},
+                                                                        sizeGuias=${sizeGuias})}" 
+                                       th:text="${i + 1}"></a>
+                                </li>
+                                <li class="page-item" th:classappend="${ordenesPage.last} ? 'disabled'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/guias-remision(pageOrdenes=${ordenesPage.number + 1}, 
+                                                                        sizeOrdenes=${ordenesPage.size},
+                                                                        pageSalidas=${pageSalidas},
+                                                                        sizeSalidas=${sizeSalidas},
+                                                                        pageGuias=${pageGuias},
+                                                                        sizeGuias=${sizeGuias})}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    <div th:unless="${ordenesPage.totalElements > 0}" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No hay órdenes de compra pendientes sin guía de remisión</p>
+                    </div>
+                </div>
+                
+                <!-- Tab: Salidas de Inventario -->
+                <div class="tab-pane fade" id="salidas-tab">
+                    <div th:if="${salidasPage.totalElements > 0}">
+                        <div class="table-container">
+                            <table class="table custom-table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID Salida</th>
+                                        <th>Número Salida</th>
+                                        <th>Fecha Salida</th>
+                                        <th>Cliente</th>
+                                        <th>Tipo Comprobante</th>
+                                        <th>Monto Total</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="salida : ${salidasPage.content}">
+                                        <td th:text="${salida.idSalida}"></td>
+                                        <td th:text="${salida.numeroSalida}"></td>
+                                        <td th:text="${#temporals.format(salida.fechaSalida, 'dd/MM/yyyy')}"></td>
+                                        <td th:text="${salida.cliente != null ? salida.cliente.nombreCliente : 'N/A'}"></td>
+                                        <td th:text="${salida.tipoComprobante}"></td>
+                                        <td th:text="'S/ ' + ${#numbers.formatDecimal(salida.montoTotal, 1, 2)}"></td>
+                                        <td><span class="badge badge-custom badge-completada" th:text="${salida.estadoSalida}"></span></td>
+                                        <td>
+                                            <button class="btn btn-purple btn-action btn-sm" 
+                                                    th:attr="data-id-salida=${salida.idSalida}"
+                                                    onclick="abrirModalSalida(this)">
+                                                <i class="fas fa-file-invoice me-1"></i>Generar Guía
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Paginación Salidas -->
+                        <nav th:if="${salidasPage.totalPages > 1}">
+                            <ul class="pagination">
+                                <li class="page-item" th:classappend="${salidasPage.first} ? 'disabled'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/guias-remision(pageOrdenes=${pageOrdenes},
+                                                                        sizeOrdenes=${sizeOrdenes},
+                                                                        pageSalidas=${salidasPage.number - 1}, 
+                                                                        sizeSalidas=${salidasPage.size},
+                                                                        pageGuias=${pageGuias},
+                                                                        sizeGuias=${sizeGuias})}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item" 
+                                    th:each="i : ${#numbers.sequence(0, salidasPage.totalPages - 1)}"
+                                    th:classappend="${i == salidasPage.number} ? 'active'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/guias-remision(pageOrdenes=${pageOrdenes},
+                                                                        sizeOrdenes=${sizeOrdenes},
+                                                                        pageSalidas=${i}, 
+                                                                        sizeSalidas=${salidasPage.size},
+                                                                        pageGuias=${pageGuias},
+                                                                        sizeGuias=${sizeGuias})}" 
+                                       th:text="${i + 1}"></a>
+                                </li>
+                                <li class="page-item" th:classappend="${salidasPage.last} ? 'disabled'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/guias-remision(pageOrdenes=${pageOrdenes},
+                                                                        sizeOrdenes=${sizeOrdenes},
+                                                                        pageSalidas=${salidasPage.number + 1}, 
+                                                                        sizeSalidas=${salidasPage.size},
+                                                                        pageGuias=${pageGuias},
+                                                                        sizeGuias=${sizeGuias})}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    <div th:unless="${salidasPage.totalElements > 0}" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No hay salidas de inventario completadas sin guía de remisión</p>
+                    </div>
+                </div>
+                
+                <!-- Tab: Guías Generadas -->
+                <div class="tab-pane fade" id="guias-tab">
+                    <!-- Buscador -->
+                    <form th:action="@{/admin/guias-remision}" method="get">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="Buscar por número de guía, transportista o placa..." 
+                                   th:value="${search}">
+                            <!-- Mantener parámetros de paginación -->
+                            <input type="hidden" name="pageOrdenes" th:value="${pageOrdenes}">
+                            <input type="hidden" name="sizeOrdenes" th:value="${sizeOrdenes}">
+                            <input type="hidden" name="pageSalidas" th:value="${pageSalidas}">
+                            <input type="hidden" name="sizeSalidas" th:value="${sizeSalidas}">
+                            <input type="hidden" name="sizeGuias" th:value="${sizeGuias}">
+                        </div>
+                    </form>
+                    
+                    <div th:if="${guiasPage.totalElements > 0}">
+                        <div class="table-container">
+                            <table class="table custom-table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Número Guía</th>
+                                        <th>Serie</th>
+                                        <th>Fecha Emisión</th>
+                                        <th>Tipo</th>
+                                        <th>Motivo</th>
+                                        <th>Transportista</th>
+                                        <th>Placa</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="guia : ${guiasPage.content}">
+                                        <td th:text="${guia.numeroGuia}"></td>
+                                        <td th:text="${guia.serieGuia}"></td>
+                                        <td th:text="${#temporals.format(guia.fechaEmision, 'dd/MM/yyyy')}"></td>
+                                        <td th:text="${guia.tipoGuia}"></td>
+                                        <td th:text="${guia.motivoTraslado}"></td>
+                                        <td th:text="${guia.transportista}"></td>
+                                        <td th:text="${guia.placaVehiculo}"></td>
+                                        <td>
+                                            <span class="badge badge-custom" 
+                                                  th:classappend="${guia.estadoGuia.name() == 'Emitida'} ? 'badge-emitida' : 
+                                                                  (${guia.estadoGuia.name() == 'En_Transito'} ? 'badge-en-transito' : 
+                                                                  (${guia.estadoGuia.name() == 'Recibida'} ? 'badge-recibida' : 'badge-anulada'))"
+                                                  th:text="${guia.estadoGuia}"></span>
+                                        </td>
+                                        <td>
+                                            
+                                            <a th:href="@{/admin/guias-remision/pdf/{idGuia}(idGuia=${guia.idGuia})}" 
+                                                target="_blank" 
+                                                class="btn btn-purple btn-action btn-sm">
+                                                 <i class="fas fa-file-pdf me-1"></i>PDF
+                                            </a>
+                                            <button class="btn btn-danger-custom btn-action btn-sm" 
+                                                    th:if="${guia.estadoGuia.name() != 'Anulada'}"
+                                                    th:attr="data-id-guia=${guia.idGuia}"
+                                                    onclick="anularGuia(this)">
+                                                <i class="fas fa-ban me-1"></i>Anular
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Paginación Guías -->
+                        <nav th:if="${guiasPage.totalPages > 1}">
+                            <ul class="pagination">
+                                <li class="page-item" th:classappend="${guiasPage.first} ? 'disabled'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/guias-remision(pageOrdenes=${pageOrdenes},
+                                                                        sizeOrdenes=${sizeOrdenes},
+                                                                        pageSalidas=${pageSalidas},
+                                                                        sizeSalidas=${sizeSalidas},
+                                                                        pageGuias=${guiasPage.number - 1}, 
+                                                                        sizeGuias=${guiasPage.size}, 
+                                                                        search=${search})}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item" 
+                                    th:each="i : ${#numbers.sequence(0, guiasPage.totalPages - 1)}"
+                                    th:classappend="${i == guiasPage.number} ? 'active'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/guias-remision(pageOrdenes=${pageOrdenes},
+                                                                        sizeOrdenes=${sizeOrdenes},
+                                                                        pageSalidas=${pageSalidas},
+                                                                        sizeSalidas=${sizeSalidas},
+                                                                        pageGuias=${i}, 
+                                                                        sizeGuias=${guiasPage.size}, 
+                                                                        search=${search})}" 
+                                       th:text="${i + 1}"></a>
+                                </li>
+                                <li class="page-item" th:classappend="${guiasPage.last} ? 'disabled'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/guias-remision(pageOrdenes=${pageOrdenes},
+                                                                        sizeOrdenes=${sizeOrdenes},
+                                                                        pageSalidas=${pageSalidas},
+                                                                        sizeSalidas=${sizeSalidas},
+                                                                        pageGuias=${guiasPage.number + 1}, 
+                                                                        sizeGuias=${guiasPage.size}, 
+                                                                        search=${search})}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    <div th:unless="${guiasPage.totalElements > 0}" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p th:if="${search != null && !search.isEmpty()}">No se encontraron resultados para "<span th:text="${search}"></span>"</p>
+                        <p th:unless="${search != null && !search.isEmpty()}">No hay guías de remisión generadas</p>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+   <!-- Modal para Crear Guía desde Orden de Compra -->
+    <div class="modal fade" id="modalGuiaOrden" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-invoice me-2"></i>Generar Guía de Remisión - Orden de Compra
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/guias-remision/crear-desde-orden}" method="post" id="formGuiaOrden">
+                    <div class="modal-body">
+                        <input type="hidden" name="idOrden" id="idOrdenHidden">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha de Traslado <span class="text-required">*</span></label>
+                                <input type="date" class="form-control" name="fechaTraslado" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Transportista <span class="text-required">*</span></label>
+                                <input type="text" class="form-control" name="transportista" maxlength="150" required placeholder="Nombre del transportista">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Placa del Vehículo <span class="text-required">*</span></label>
+                                <input type="text" class="form-control" name="placaVehiculo" maxlength="20" required placeholder="Ej: ABC-123">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Licencia de Conducir <span class="text-required">*</span></label>
+                                <input type="text" class="form-control" name="licenciaConducir" maxlength="20" required placeholder="Número de licencia">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Peso Total (kg)</label>
+                                <input type="number" step="0.01" class="form-control" name="pesoTotal" placeholder="0.00" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Número de Bultos</label>
+                                <input type="number" class="form-control" name="numeroPackages" value="1" min="1" placeholder="1">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" name="observaciones" rows="3" maxlength="600" placeholder="Ingrese observaciones adicionales (opcional)"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-purple">
+                            <i class="fas fa-save me-1"></i>Generar Guía
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para Crear Guía desde Salida de Inventario -->
+    <div class="modal fade" id="modalGuiaSalida" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-invoice me-2"></i>Generar Guía de Remisión - Salida de Inventario
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/guias-remision/crear-desde-salida}" method="post" id="formGuiaSalida">
+                    <div class="modal-body">
+                        <input type="hidden" name="idSalida" id="idSalidaHidden">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha de Traslado <span class="text-required">*</span></label>
+                                <input type="date" class="form-control" name="fechaTraslado" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Transportista <span class="text-required">*</span></label>
+                                <input type="text" class="form-control" name="transportista" maxlength="150" required placeholder="Nombre del transportista">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Placa del Vehículo <span class="text-required">*</span></label>
+                                <input type="text" class="form-control" name="placaVehiculo" maxlength="20" required placeholder="Ej: ABC-123">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Licencia de Conducir <span class="text-required">*</span></label>
+                                <input type="text" class="form-control" name="licenciaConducir" maxlength="20" required placeholder="Número de licencia">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Peso Total (kg)</label>
+                                <input type="number" step="0.01" class="form-control" name="pesoTotal" placeholder="0.00" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Número de Bultos</label>
+                                <input type="number" class="form-control" name="numeroPackages" value="1" min="1" placeholder="1">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" name="observaciones" rows="3" maxlength="600" placeholder="Ingrese observaciones adicionales (opcional)"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-purple">
+                            <i class="fas fa-save me-1"></i>Generar Guía
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para Ver Detalle de Guía -->
+    <div class="modal fade" id="modalDetalleGuia" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header" style="background: #7c3aed; color: white;"> <h5 class="modal-title">
+                        <i class="fas fa-file-alt me-2"></i>Detalle de Guía de Remisión
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="detalleGuiaContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border" style="color: #7c3aed;" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Cargando detalles...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script th:inline="javascript">
+        const contextPath = /*[[@{/}]]*/ '/';
+        
+        /*[# th:if="${success}"]*/
+        Swal.fire({
+            icon: 'success',
+            title: '¡Éxito!',
+            text: /*[[${success}]]*/ '',
+            confirmButtonColor: '#7c3aed',
+            timer: 3000,
+            timerProgressBar: true
+        });
+        /*[/]*/
+        
+        /*[# th:if="${error}"]*/
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: /*[[${error}]]*/ '',
+            confirmButtonColor: '#7c3aed'
+        });
+        /*[/]*/
+        
+        function abrirModalOrden(button) {
+            const idOrden = button.getAttribute('data-id-orden');
+            
+            document.getElementById('formGuiaOrden').reset();
+            document.getElementById('idOrdenHidden').value = idOrden;
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelector('#formGuiaOrden input[name="fechaTraslado"]').min = today;
+            
+            const modal = new bootstrap.Modal(document.getElementById('modalGuiaOrden'));
+            modal.show();
+        }
+        
+        function abrirModalSalida(button) {
+            const idSalida = button.getAttribute('data-id-salida');
+            
+            document.getElementById('formGuiaSalida').reset();
+            document.getElementById('idSalidaHidden').value = idSalida;
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelector('#formGuiaSalida input[name="fechaTraslado"]').min = today;
+            
+            const modal = new bootstrap.Modal(document.getElementById('modalGuiaSalida'));
+            modal.show();
+        }
+        
+        function verDetalleGuia(button) {
+            const idGuia = button.getAttribute('data-id-guia');
+            const modal = new bootstrap.Modal(document.getElementById('modalDetalleGuia'));
+            
+            // Mostrar spinner de carga
+            document.getElementById('detalleGuiaContent').innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border" style="color: #7c3aed;" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Cargando detalles...</p>
+                </div>
+            `;
+            
+            // Quitar el botón de PDF por si se había establecido antes
+            document.getElementById('btnVerPdfFooter')?.remove(); 
+
+            modal.show();
+            
+            // Iniciar la solicitud fetch
+            fetch(contextPath + 'admin/guias-remision/detalles/' + idGuia)
+                .then(response => {
+                    if (!response.ok) {
+                        // Si la respuesta no es 200 (ej. error 500, 404)
+                        throw new Error('Error al cargar la guía completa.');
+                    }
+                    return response.json();
+                })
+                .then(guia => { // ⭐ 'guia' es el objeto GuiaRemision completo ⭐
+                    
+                    // --- 1. PREPARACIÓN DE DATOS DE CABECERA ---
+                    const numGuia = `${guia.serieGuia}-${guia.correlativoGuia}`;
+                    
+                    // Lógica para determinar el documento relacionado (Orden o Salida)
+                    let tipoDocRelacionado = 'Documento Relacionado';
+                    let numDocRelacionado = 'N/A';
+                    if (guia.ordenCompra) {
+                        tipoDocRelacionado = 'Orden de Compra';
+                        numDocRelacionado = guia.ordenCompra.numeroOrden;
+                    } else if (guia.salidaInventario) {
+                        tipoDocRelacionado = 'Salida de Inventario';
+                        numDocRelacionado = guia.salidaInventario.numeroSalida;
+                    }
+
+                    const transportista = guia.transportista || 'N/A';
+                    const placa = guia.placaVehiculo || 'N/A';
+                    const observaciones = guia.observaciones || 'Sin observaciones';
+                    const peso = guia.pesoTotal ? `${guia.pesoTotal} Kg` : 'N/A';
+                    const fechaTraslado = guia.fechaTraslado || 'N/A';
+
+                    // --- 2. CONSTRUCCIÓN DEL CONTENIDO HTML ---
+                    let html = `
+                        <h6 class="mb-3">Información General</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-4"><strong>N° Guía:</strong> <span class="fw-bold">${numGuia}</span></div>
+                            <div class="col-md-4"><strong>Fecha Emisión:</strong> ${guia.fechaEmision}</div>
+                            <div class="col-md-4"><strong>Fecha Traslado:</strong> ${fechaTraslado}</div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-4"><strong>Estado:</strong> <span class="badge bg-primary">${guia.estadoGuia}</span></div>
+                            <div class="col-md-4"><strong>Tipo:</strong> ${guia.tipoGuia}</div>
+                            <div class="col-md-4"><strong>Motivo:</strong> ${guia.motivoTraslado}</div>
+                        </div>
+                        <hr>
+                        <h6 class="mb-3">Transporte y Documento Relacionado</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-4"><strong>${tipoDocRelacionado}:</strong> ${numDocRelacionado}</div>
+                            <div class="col-md-4"><strong>Transportista:</strong> ${transportista}</div>
+                            <div class="col-md-4"><strong>Placa Vehículo:</strong> ${placa}</div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6"><strong>Peso Total:</strong> ${peso}</div>
+                            <div class="col-md-6"><strong>Observaciones:</strong> ${observaciones}</div>
+                        </div>
+                        <hr>
+                        <h6 class="mt-4 mb-3">Detalle de Ítems</h6>
+                    `;
+
+                    // --- 3. CONSTRUCCIÓN DE LA TABLA DE DETALLES ---
+                    html += '<div class="table-responsive"><table class="table table-bordered table-hover table-striped">';
+                    html += '<thead style="background: linear-gradient(135deg, #7c3aed, #5b21b6); color: white;">';
+                    html += '<tr><th class="text-center">Item</th><th>Producto/Suministro</th><th class="text-center">Cantidad</th><th class="text-center">Cant. Recibida</th><th class="text-center">Unidad</th><th class="text-center">Lote</th><th class="text-center">Estado</th></tr></thead>';
+                    html += '<tbody>';
+                    
+                    const detalles = guia.detalles; // Accedemos a la lista de detalles
+                    
+                    if (detalles && detalles.length > 0) {
+                        detalles.forEach(detalle => {
+                            const nombreItem = detalle.producto?.nombreProducto || detalle.suministro?.nombreSuministro || 'Sin nombre';
+                            const lote = detalle.lote || '-';
+                            
+                            html += '<tr>';
+                            html += '<td class="text-center fw-bold">' + detalle.numeroItem + '</td>';
+                            html += '<td>' + nombreItem + '</td>';
+                            html += '<td class="text-center">' + detalle.cantidad + '</td>';
+                            html += '<td class="text-center">' + detalle.cantidadRecibida + '</td>';
+                            html += '<td class="text-center">' + detalle.unidadMedida + '</td>';
+                            html += '<td class="text-center">' + lote + '</td>';
+                            html += '<td class="text-center">';
+                            html += '<span class="badge badge-custom">' + detalle.estadoItem + '</span>';
+                            html += '</td>';
+                            html += '</tr>';
+                        });
+                    } else {
+                        html += '<tr><td colspan="7" class="text-center text-muted py-4">';
+                        html += '<i class="fas fa-inbox fa-3x mb-3 d-block" style="opacity: 0.3;"></i>';
+                        html += 'No hay detalles disponibles';
+                        html += '</td></tr>';
+                    }
+                    
+                    html += '</tbody></table></div>';
+                    document.getElementById('detalleGuiaContent').innerHTML = html;
+                    
+                    // --- 4. CREAR EL BOTÓN DE PDF EN EL FOOTER ---
+                    const footer = document.querySelector('#modalDetalleGuia .modal-footer');
+                    
+                    // Crear el enlace
+                    const btnPdf = document.createElement('a');
+                    btnPdf.id = 'btnVerPdfFooter';
+                    btnPdf.href = `${contextPath}admin/guias-remision/pdf/${guia.idGuia}`;
+                    btnPdf.target = '_blank';
+                    btnPdf.className = 'btn btn-primary';
+                    btnPdf.innerHTML = '<i class="fas fa-file-pdf me-1"></i> Ver / Descargar PDF';
+
+                    // Insertar el botón ANTES del botón "Cerrar"
+                    footer.insertBefore(btnPdf, footer.firstChild);
+                    
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('detalleGuiaContent').innerHTML = 
+                        '<div class="alert alert-danger">' +
+                        '<i class="fas fa-exclamation-triangle me-2"></i>' +
+                        'Error al cargar los detalles de la guía. Por favor, intente nuevamente. Detalles: ' + error.message +
+                        '</div>';
+                });
+        }
+        
+        function anularGuia(button) {
+            const idGuia = button.getAttribute('data-id-guia');
+            
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: "Esta acción anulará la guía de remisión. No se podrá revertir.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#7c3aed',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, anular',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Procesando...',
+                        text: 'Anulando guía de remisión',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = contextPath + 'admin/guias-remision/anular/' + idGuia;
+                    
+                    const csrfToken = document.querySelector('meta[name="_csrf"]');
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+                    if (csrfToken && csrfHeader) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = csrfHeader.getAttribute('content');
+                        input.value = csrfToken.getAttribute('content');
+                        form.appendChild(input);
+                    }
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+        
+        let searchTimeout;
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    this.form.submit();
+                }, 800);
+            });
+        }
+        
+        document.getElementById('formGuiaOrden')?.addEventListener('submit', function(e) {
+            const fechaTraslado = this.querySelector('input[name="fechaTraslado"]').value;
+            const transportista = this.querySelector('input[name="transportista"]').value.trim();
+            const placa = this.querySelector('input[name="placaVehiculo"]').value.trim();
+            const licencia = this.querySelector('input[name="licenciaConducir"]').value.trim();
+            
+            if (!fechaTraslado || !transportista || !placa || !licencia) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos requeridos',
+                    text: 'Debe completar todos los campos obligatorios',
+                    confirmButtonColor: '#7c3aed'
+                });
+                return false;
+            }
+        });
+        
+        document.getElementById('formGuiaSalida')?.addEventListener('submit', function(e) {
+            const fechaTraslado = this.querySelector('input[name="fechaTraslado"]').value;
+            const transportista = this.querySelector('input[name="transportista"]').value.trim();
+            const placa = this.querySelector('input[name="placaVehiculo"]').value.trim();
+            const licencia = this.querySelector('input[name="licenciaConducir"]').value.trim();
+            
+            if (!fechaTraslado || !transportista || !placa || !licencia) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos requeridos',
+                    text: 'Debe completar todos los campos obligatorios',
+                    confirmButtonColor: '#7c3aed'
+                });
+                return false;
+            }
+        });
+        
+        document.querySelectorAll('input[name="placaVehiculo"]').forEach(input => {
+            input.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        });
+    </script>
+</body>
+</html>

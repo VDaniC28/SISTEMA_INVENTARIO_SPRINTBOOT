@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Clientes - Sistema Inventario</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    /* * ========================================================= 
+     * ESTILOS ORIGINALES DE LA VISTA MADRE 
+     * ========================================================= 
+     */
+    * {
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+    }
+
+    body {
+        margin: 0;
+        display: flex;
+        height: 100vh;
+        background-color: #f2f6ff;
+    }
+
+    .sidebar {
+        width: 200px;
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20px 10px;
+        border-right: 1px solid #ddd;
+    }
+
+    .sidebar h2 {
+        font-size: 1.5em;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .sidebar img {
+        width: 100%;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .logout-btn {
+        background-color: #dc3545;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .logout-btn i {
+        margin-right: 5px;
+    }
+
+    .main {
+        flex: 1;
+        padding: 40px;
+        overflow-y: auto;
+    }
+    
+    /* * ========================================================= 
+     * ESTILOS DE GESTIÓN DE CLIENTES (ADAPTADOS/AÑADIDOS) 
+     * Se priorizará el font-family 'Inter' de la vista madre sobre 'Segoe UI' 
+     * y se eliminan estilos de 'body' redundantes (background-color). 
+     * ========================================================= 
+     */
+    :root {
+        --primary-purple: #6d3c7c;
+        --dark-purple: #6d3c7c;
+        --light-purple: #6d3c7c;
+    }
+
+    /* Contenedores principales */
+    .container-custom {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+
+    /* Header Section */
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .title-with-icon {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .title-with-icon i {
+        color: var(--primary-purple);
+        font-size: 32px;
+    }
+
+    .title-with-icon h4 {
+        margin: 0;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.5rem;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
+        border: none;
+        padding: 12px 25px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(111, 66, 193, 0.3);
+    }
+
+    /* Tabla */
+    .table-container {
+        overflow-x: auto;
+        margin-top: 20px;
+    }
+
+    .table-custom {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table-custom thead {
+        background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
+        color: white;
+    }
+
+    .table-custom thead th {
+        border: none;
+        padding: 16px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    .table-custom thead th:first-child {
+        border-radius: 10px 0 0 0;
+    }
+
+    .table-custom thead th:last-child {
+        border-radius: 0 10px 0 0;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .table-custom tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .table-custom tbody td {
+        padding: 15px;
+        vertical-align: middle;
+    }
+
+    /* Badges */
+    .badge-estado {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-buen-pagador {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .badge-mal-pagador {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    /* Botones de acción */
+    .btn-action {
+        padding: 8px 15px;
+        border-radius: 8px;
+        border: none;
+        margin: 0 3px;
+        transition: all 0.2s ease;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .btn-edit {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background-color: #138496;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+    }
+
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background-color: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+
+    /* Paginación */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid #e9ecef;
+    }
+
+    .pagination {
+        margin: 0;
+    }
+
+    .page-link {
+        color: var(--primary-purple);
+        border: 1px solid #dee2e6;
+        padding: 10px 16px;
+        margin: 0 4px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .page-link:hover {
+        background-color: var(--primary-purple);
+        color: white;
+        border-color: var(--primary-purple);
+        transform: translateY(-2px);
+    }
+
+    .page-item.active .page-link {
+        background-color: var(--primary-purple);
+        border-color: var(--primary-purple);
+    }
+
+    .page-item.disabled .page-link {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+
+    /* Modales */
+    .modal-header {
+        background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 20px 25px;
+    }
+
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .modal-footer {
+        padding: 20px 25px;
+        border-top: 2px solid #e9ecef;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 2px solid #dee2e6;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-purple);
+        box-shadow: 0 0 0 0.25rem rgba(111, 66, 193, 0.25);
+    }
+
+    /* Sección de Filtros */
+    .filter-section {
+        margin-bottom: 25px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .filter-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .filter-select-wrapper {
+        flex: 0 0 220px;
+    }
+
+    .filter-select {
+        border: 3px solid var(--primary-purple);
+        border-radius: 10px;
+        padding: 12px 15px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .filter-select:focus {
+        border-color: var(--dark-purple);
+        box-shadow: 0 0 0 0.25rem rgba(111, 66, 193, 0.25);
+    }
+
+    .filter-tags-wrapper {
+        flex: 1;
+        min-height: 48px;
+    }
+
+    .filter-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .filter-tag {
+        background-color: white;
+        border: 2px solid var(--primary-purple);
+        border-radius: 10px;
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 2px 8px rgba(111, 66, 193, 0.15);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .filter-tag-label {
+        font-weight: 700;
+        color: var(--primary-purple);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filter-tag-select,
+    .filter-tag-input {
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        min-width: 160px;
+        color: black;
+        background-color: white;
+    }
+
+    .filter-tag-input[type="date"] {
+        min-width: 140px;
+    }
+
+    .filter-tag-remove {
+        background: none;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        font-size: 1.2rem;
+        padding: 0 5px;
+        transition: all 0.2s ease;
+        line-height: 1;
+    }
+
+    .filter-tag-remove:hover {
+        color: #c82333;
+        transform: scale(1.3);
+    }
+
+    .btn-filter-wrapper {
+        flex: 0 0 auto;
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
+        border: none;
+        padding: 12px 30px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(111, 66, 193, 0.3);
+    }
+
+    .btn-filter:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(111, 66, 193, 0.5);
+    }
+
+    /* Estados vacíos y loading */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 72px;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+
+    .empty-state p {
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .spinner-border {
+        width: 3.5rem;
+        height: 3.5rem;
+        color: var(--primary-purple);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .header-section {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .filter-container {
+            flex-direction: column;
+        }
+
+        .filter-select-wrapper,
+        .btn-filter-wrapper {
+            flex: 1 1 100%;
+        }
+
+        .filter-select,
+        .btn-filter {
+            width: 100%;
+        }
+    }
+
+    .btn-secondary-custom {
+        background-color: #6c757d;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    
+</style>
+</head>
+<body>
+    <div class="sidebar">
+        <div>
+            <a href="/admin/vistaAdmin">
+                <img src="/images/Logo.png" alt="Logo">
+            </a>
+            <h2>SISTEMA INVENTARIO</h2>
+        </div> 
+        <form action="/logout" method="post">
+            <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+        </form>
+    </div>
+
+<div class="main">
+    <div class="container mt-4 mb-5">
+        
+        <!-- ============================================ -->
+        <!-- SECCIÓN 1: GESTIÓN DE CLIENTES -->
+        <!-- ============================================ -->
+        <div class="container-custom">
+            <div class="header-section">
+                <div class="title-with-icon">
+                    <i class="fas fa-briefcase"></i>
+                    <h4>Gestión de Clientes</h4>
+                </div>
+                <button class="btn btn-primary-custom" onclick="abrirModalRegistro()">
+                    <i class="fas fa-plus me-2"></i>Registrar Nuevo Cliente
+                </button>
+            </div>
+
+            <!-- Tabla de clientes -->
+            <div class="table-container">
+                <table class="table table-custom">
+                    <thead>
+                        <tr>
+                            <th>ID Cliente</th>
+                            <th>Nombre Cliente</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Dirección</th>
+                            <th>Estado Valor</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaClientesBody">
+                        <tr>
+                            <td colspan="7" class="loading">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                                <p class="mt-3 mb-0">Cargando clientes...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="pagination-container">
+                <div>
+                    <span id="paginationInfo" style="font-weight: 500; color: #495057;">Mostrando 0 de 0 clientes</span>
+                </div>
+                <nav>
+                    <ul class="pagination" id="paginationControls"></ul>
+                </nav>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECCIÓN 2: HISTORIAL DE COMPRAS -->
+        <!-- ============================================ -->
+        <div class="container-custom" id="historialSection" style="display: none;">
+            <div class="header-section">
+                <div class="title-with-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h4>Historial de Compras</h4>
+                </div>
+                <button class="btn btn-secondary-custom" onclick="cerrarHistorial()">
+                    <i class="fas fa-times me-2"></i>Cerrar Historial
+                </button>
+            </div>
+
+            <div class="mb-3">
+                <span class="badge bg-secondary" style="font-size: 1rem; padding: 10px 20px;" id="clienteNombreHistorial"></span>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filter-section">
+                <div class="filter-container">
+                    <div class="filter-select-wrapper">
+                        <select class="form-select filter-select" id="filterSelect" onchange="agregarFiltro()">
+                            <option value="">Seleccionar filtro...</option>
+                            <option value="fecha">Rango de Fechas</option>
+                            <option value="tipoComprobante">Tipo de Comprobante</option>
+                            <option value="estadoSalida">Estado de la Salida</option>
+                            <option value="tipoSalida">Tipo de Salida</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-tags-wrapper">
+                        <div class="filter-tags" id="filterTags">
+                            <!-- Los filtros se agregarán aquí dinámicamente -->
+                        </div>
+                    </div>
+
+                    <div class="btn-filter-wrapper">
+                        <button class="btn btn-filter" onclick="aplicarFiltros()">
+                            <i class="fas fa-filter me-2"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de historial -->
+            <div class="table-container">
+                <table class="table table-custom">
+                    <thead>
+                        <tr>
+                            <th>N° Salida</th>
+                            <th>Fecha Salida</th>
+                            <th>Tipo Comprobante</th>
+                            <th>Tipo Salida</th>
+                            <th>Monto Total</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaHistorialBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No hay compras registradas para este cliente</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación del historial -->
+            <div class="pagination-container">
+                <div>
+                    <span id="paginationInfoHistorial" style="font-weight: 500; color: #495057;">Mostrando 0 de 0 compras</span>
+                </div>
+                <nav>
+                    <ul class="pagination" id="paginationControlsHistorial"></ul>
+                </nav>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MODAL: REGISTRAR CLIENTE -->
+    <!-- ============================================ -->
+    <div class="modal fade" id="modalRegistro" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>Registrar Nuevo Cliente
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formRegistro">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Cliente <span class="text-danger">*</span></label>
+                                <select class="form-select" id="tipoCliente" name="tipoCliente" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="Persona">Persona Natural</option>
+                                    <option value="Empresa">Empresa</option>
+                                </select>
+                                <div class="invalid-feedback" id="feedbackTipoCliente">Campo obligatorio.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Documento <span class="text-danger">*</span></label>
+                                <select class="form-select" id="tipoDocumento" name="tipoDocumento" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="DNI">DNI (8 dígitos)</option>
+                                    <option value="RUC">RUC (11 dígitos)</option>
+                                    <option value="Pasaporte">Pasaporte (6-20 caracteres)</option>
+                                </select>
+                                <div class="invalid-feedback" id="feedbackTipoDocumento">Campo obligatorio.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Número de Documento <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="numeroDocumento" name="numeroDocumento" required maxlength="20" 
+                                                                                                                            pattern="[0-9]*" 
+                                                                                                                            inputmode="numeric">
+                                <div class="invalid-feedback" id="feedbackNumeroDocumento"></div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3" id="groupNombreCliente">
+                                <label class="form-label" id="labelNombreCliente">Nombre del Cliente <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="nombreCliente" name="nombreCliente" required maxlength="150">
+                                <div class="invalid-feedback" id="feedbackNombreCliente">El nombre es obligatorio para Personas Naturales y no debe exceder 150 caracteres.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3" id="groupNombreComercial">
+                                <label class="form-label">Nombre Comercial <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="nombreComercial" name="nombreComercial" maxlength="150">
+                                <div class="invalid-feedback" id="feedbackNombreComercial">El nombre comercial es obligatorio para Empresas y no debe exceder 150 caracteres.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="telefono" name="telefono" maxlength="13">
+                                <div class="invalid-feedback" id="feedbackTelefono">El teléfono no debe exceder 13 caracteres.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" maxlength="100">
+                                <div class="invalid-feedback" id="feedbackEmail">Debe ser un formato de correo válido y no exceder 100 caracteres.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Estado Valor</label>
+                                <select class="form-select" id="estadoValor" name="estadoValor">
+                                    <option value="">Seleccione...</option>
+                                    <option value="BUEN PAGADOR">BUEN PAGADOR</option>
+                                    <option value="MAL PAGADOR">MAL PAGADOR</option>
+                                </select>
+                                <div class="invalid-feedback" id="feedbackEstadoValor">Campo obligatorio.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Dirección</label>
+                            <textarea class="form-control" id="direccion" name="direccion" rows="2" maxlength="200"></textarea>
+                            <div class="invalid-feedback" id="feedbackDireccion">La dirección no debe exceder 200 caracteres.</div>
+                        </div>
+                        
+                        <input type="hidden" id="fechaRegistro" name="fechaRegistro">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary-custom" onclick="guardarCliente()">
+                        <i class="fas fa-save me-2"></i>Guardar Cliente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MODAL: EDITAR CLIENTE -->
+    <!-- ============================================ -->
+    <div class="modal fade" id="modalEditar" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-edit me-2"></i>Actualizar Cliente
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditar">
+                        <input type="hidden" id="editIdCliente" name="idCliente">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Cliente <span class="text-danger">*</span></label>
+                                <select class="form-select" id="editTipoCliente" name="tipoCliente" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="Persona">Persona Natural</option>
+                                    <option value="Empresa">Empresa</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Documento <span class="text-danger">*</span></label>
+                                <select class="form-select" id="editTipoDocumento" name="tipoDocumento" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="DNI">DNI</option>
+                                    <option value="RUC">RUC</option>
+                                    <option value="Pasaporte">Pasaporte</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Número de Documento <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editNumeroDocumento" name="numeroDocumento" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre del Cliente <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editNombreCliente" name="nombreCliente" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre Comercial</label>
+                                <input type="text" class="form-control" id="editNombreComercial" name="nombreComercial">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="editTelefono" name="telefono" maxlength="13">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="editEmail" name="email">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Estado Valor</label>
+                                <select class="form-select" id="editEstadoValor" name="estadoValor">
+                                    <option value="">Seleccione...</option>
+                                    <option value="BUEN PAGADOR">BUEN PAGADOR</option>
+                                    <option value="MAL PAGADOR">MAL PAGADOR</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Dirección</label>
+                            <textarea class="form-control" id="editDireccion" name="direccion" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary-custom" onclick="actualizarCliente()">
+                        <i class="fas fa-save me-2"></i>Actualizar Cliente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        let currentPage = 0;
+        let totalPages = 0;
+        let pageSize = 10;
+        let clienteActualId = null;
+        let filtrosActivos = {};
+        let historialPage = 0;
+        let historialTotalPages = 0;
+
+        // ============================================
+        // REFERENCIAS DE ELEMENTOS
+        // ============================================
+        const form = document.getElementById('formRegistro');
+        const modalRegistro = document.getElementById('modalRegistro');
+        const tipoClienteSelect = document.getElementById('tipoCliente');
+        const tipoDocumentoSelect = document.getElementById('tipoDocumento');
+        const numeroDocumentoInput = document.getElementById('numeroDocumento');
+        const nombreClienteInput = document.getElementById('nombreCliente');
+        const nombreComercialInput = document.getElementById('nombreComercial');
+        const groupNombreCliente = document.getElementById('groupNombreCliente');
+        const groupNombreComercial = document.getElementById('groupNombreComercial');
+        
+
+        // ============================================
+        // FUNCIONES AUXILIARES DE VALIDACIÓN 
+        // ============================================
+
+        /**
+         * Limpia todas las clases de validación de Bootstrap del formulario.
+         */
+        function limpiarClasesValidacion() {
+            Array.from(form.querySelectorAll('.form-control, .form-select')).forEach(el => {
+                el.classList.remove('is-invalid', 'is-valid');
+            });
+        }
+
+        /**
+         * Ajusta la visibilidad y obligatoriedad de los campos Nombre/Nombre Comercial.
+         */
+        function toggleFields() {
+            const tipo = tipoClienteSelect.value;
+            const labelNombreCliente = document.getElementById('labelNombreCliente');
+            
+            // 1. nombreCliente: Siempre visible y requerido
+            groupNombreCliente.style.display = 'block';
+            nombreClienteInput.setAttribute('required', 'required');
+            
+            // 2. Gestionar Nombre Comercial
+            if (tipo === 'Empresa') {
+                groupNombreComercial.style.display = 'block';
+                nombreComercialInput.removeAttribute('required'); // Opcional en BD
+                labelNombreCliente.innerHTML = 'Representante/Contacto <span class="text-danger">*</span>';
+            } else {
+                groupNombreComercial.style.display = 'none';
+                nombreComercialInput.removeAttribute('required');
+                nombreComercialInput.value = ''; // Limpiar valor
+                labelNombreCliente.innerHTML = 'Nombre del Cliente <span class="text-danger">*</span>';
+            }
+        }
+
+        /**
+         * Ajusta el campo numeroDocumento (maxlength, pattern) según el tipo de documento.
+         */
+        function ajustarCampoDocumento() {
+            const tipoDoc = tipoDocumentoSelect.value;
+            let maxLength = 20; 
+            let pattern = '';
+
+            switch (tipoDoc) {
+                case 'DNI':
+                    maxLength = 8;
+                    pattern = '[0-9]*';
+                    break;
+                case 'RUC':
+                    maxLength = 11;
+                    pattern = '[0-9]*';
+                    break;
+                case 'Pasaporte':
+                    maxLength = 20;
+                    pattern = '[A-Za-z0-9]*';
+                    break;
+                default:
+                    maxLength = 20;
+                    pattern = '';
+                    break;
+            }
+
+            numeroDocumentoInput.setAttribute('maxlength', maxLength);
+            if (pattern) {
+                numeroDocumentoInput.setAttribute('pattern', pattern);
+                numeroDocumentoInput.setAttribute('inputmode', (tipoDoc === 'DNI' || tipoDoc === 'RUC') ? 'numeric' : 'text');
+            } else {
+                numeroDocumentoInput.removeAttribute('pattern');
+                numeroDocumentoInput.setAttribute('inputmode', 'text');
+            }
+            
+            // Recortar valor si el cambio de tipo lo requiere
+            if (numeroDocumentoInput.value.length > maxLength) {
+                numeroDocumentoInput.value = numeroDocumentoInput.value.substring(0, maxLength);
+            }
+        }
+
+        /**
+         * Valida si un campo select o input está vacío.
+         */
+        function validarCampoObligatorio(input, feedbackId) {
+            const esValido = input.value.trim() !== '';
+            const feedback = document.getElementById(feedbackId);
+            
+            if (!esValido) {
+                input.classList.add('is-invalid');
+                input.classList.remove('is-valid');
+                feedback.textContent = 'Campo obligatorio.';
+            } else {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+            }
+            return esValido;
+        }
+
+        function validarCampoTexto(input, feedbackId, mensajeError, maxLength, obligatorio) {
+            // ... (Se mantiene igual a la versión anterior)
+            const valor = input.value.trim();
+            const feedback = document.getElementById(feedbackId);
+            let esValido = true;
+            
+            if (obligatorio && valor === '') {
+                feedback.textContent = 'Campo obligatorio.';
+                esValido = false;
+            } else if (valor.length > maxLength) {
+                feedback.textContent = mensajeError;
+                esValido = false;
+            }
+            
+            if (esValido) {
+                input.classList.add('is-valid');
+                input.classList.remove('is-invalid');
+            } else {
+                input.classList.add('is-invalid');
+                input.classList.remove('is-valid');
+            }
+            return esValido;
+        }
+
+        function validarLongitud(input, maxLength) {
+            return input.value.length <= maxLength;
+        }
+
+        function validarNumeroDocumento() {
+            // ... (Se mantiene igual a la versión anterior)
+            const tipoDoc = tipoDocumentoSelect.value;
+            const numDoc = numeroDocumentoInput.value.trim();
+            const feedback = document.getElementById('feedbackNumeroDocumento');
+            let longitudValida = true;
+            let mensaje = 'El número de documento es obligatorio.';
+
+            if (numDoc === '') {
+                longitudValida = false;
+            } else if (tipoDoc === 'DNI' && numDoc.length !== 8) {
+                longitudValida = false;
+                mensaje = 'El DNI debe tener exactamente 8 dígitos.';
+            } else if (tipoDoc === 'RUC' && numDoc.length !== 11) {
+                longitudValida = false;
+                mensaje = 'El RUC debe tener exactamente 11 dígitos.';
+            } else if (tipoDoc === 'Pasaporte' && (numDoc.length < 6 || numDoc.length > 20)) {
+                longitudValida = false;
+                mensaje = 'El Pasaporte debe tener entre 6 y 20 caracteres.';
+            }
+            if (longitudValida && (tipoDoc === 'DNI' || tipoDoc === 'RUC') && !/^\d+$/.test(numDoc)) {
+                longitudValida = false;
+                mensaje = `El ${tipoDoc} solo debe contener números.`;
+            }
+
+            if (!longitudValida) {
+                numeroDocumentoInput.classList.add('is-invalid');
+                numeroDocumentoInput.classList.remove('is-valid');
+                feedback.textContent = mensaje;
+            } else {
+                numeroDocumentoInput.classList.add('is-valid');
+                numeroDocumentoInput.classList.remove('is-invalid');
+            }
+
+            return longitudValida;
+        }
+
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarClientes(0);
+            
+            // Escuchar el evento de cambio para el tipo de documento y cliente
+            tipoDocumentoSelect.addEventListener('change', ajustarCampoDocumento);
+            tipoClienteSelect.addEventListener('change', toggleFields);
+            
+            // ------------------------------------------
+            // Manejo de Eventos del Modal (Clave para tu problema)
+            // ------------------------------------------
+            
+            // Evento que se dispara cuando el modal está completamente abierto
+            modalRegistro.addEventListener('shown.bs.modal', function () {
+                // 1. Inicializar la vista de campos (ocultar NombreComercial)
+                toggleFields();
+                // 2. Ajustar la longitud inicial del documento (por si viene de otro lado)
+                ajustarCampoDocumento();
+                // 3. Asegurar que no haya clases de error o éxito visibles al inicio
+                limpiarClasesValidacion();
+            });
+
+            // Evento que se dispara al cerrar el modal (para limpiar el formulario y clases)
+            modalRegistro.addEventListener('hidden.bs.modal', function () {
+                form.reset();
+                limpiarClasesValidacion();
+                toggleFields(); // Restaurar el estado inicial
+            });
+        });
+
+        // ============================================
+        // FUNCIONES PARA GESTIÓN DE CLIENTES
+        // ============================================
+
+        function cargarClientes(page) {
+            currentPage = page;
+            
+            fetch(`/admin/clientes/listar?page=${page}&size=${pageSize}`)
+                .then(response => response.json())
+                .then(data => {
+                    mostrarClientes(data);
+                    actualizarPaginacion(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    mostrarError('Error al cargar clientes');
+                });
+        }
+
+        function mostrarClientes(data) {
+            const tbody = document.getElementById('tablaClientesBody');
+            tbody.innerHTML = '';
+
+            if (!data.content || data.content.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-users-slash"></i>
+                            <p>No hay clientes registrados</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            data.content.forEach(cliente => {
+                const nombreCompleto = cliente.nombreComercial 
+                    ? `${cliente.nombreCliente} / ${cliente.nombreComercial}`
+                    : cliente.nombreCliente;
+
+                const estadoBadge = cliente.estadoValor 
+                    ? `<span class="badge-estado ${cliente.estadoValor === 'BUEN PAGADOR' ? 'badge-buen-pagador' : 'badge-mal-pagador'}">${cliente.estadoValor}</span>`
+                    : '<span class="text-muted">-</span>';
+
+                const row = `
+                    <tr>
+                        <td><strong>${cliente.idCliente}</strong></td>
+                        <td>${nombreCompleto}</td>
+                        <td>${cliente.telefono || '-'}</td>
+                        <td>${cliente.email || '-'}</td>
+                        <td>${cliente.direccion || '-'}</td>
+                        <td>${estadoBadge}</td>
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Acciones de Cliente">
+                                <button class="btn btn-action btn-edit" onclick="abrirModalEditar(${cliente.idCliente})" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                
+                                <button class="btn btn-action btn-delete" onclick="confirmarEliminar(${cliente.idCliente})" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                
+                                <button class="btn btn-success" 
+                                        onclick="verHistorialCompras(${cliente.idCliente}, '${nombreCompleto.replace(/'/g, "\\'")}')" 
+                                        title="Ver Historial">
+                                    <i class="fas fa-history"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function actualizarPaginacion(data) {
+            totalPages = data.totalPages;
+            const info = document.getElementById('paginationInfo');
+            const controls = document.getElementById('paginationControls');
+
+            // Actualizar información
+            const inicio = data.number * data.size + 1;
+            const fin = Math.min((data.number + 1) * data.size, data.totalElements);
+            info.textContent = `Mostrando ${inicio} - ${fin} de ${data.totalElements} clientes`;
+
+            // Actualizar controles
+            controls.innerHTML = '';
+
+            // Botón anterior
+            const prevDisabled = data.first ? 'disabled' : '';
+            controls.innerHTML += `
+                <li class="page-item ${prevDisabled}">
+                    <a class="page-link" href="#" onclick="cargarClientes(${data.number - 1}); return false;">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            `;
+
+            // Números de página
+            const startPage = Math.max(0, data.number - 2);
+            const endPage = Math.min(data.totalPages - 1, data.number + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const active = i === data.number ? 'active' : '';
+                controls.innerHTML += `
+                    <li class="page-item ${active}">
+                        <a class="page-link" href="#" onclick="cargarClientes(${i}); return false;">
+                            ${i + 1}
+                        </a>
+                    </li>
+                `;
+            }
+
+            // Botón siguiente
+            const nextDisabled = data.last ? 'disabled' : '';
+            controls.innerHTML += `
+                <li class="page-item ${nextDisabled}">
+                    <a class="page-link" href="#" onclick="cargarClientes(${data.number + 1}); return false;">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            `;
+        }
+
+        // ============================================
+        // FUNCIONES PARA MODALES
+        // ============================================
+
+        function abrirModalRegistro() {
+            document.getElementById('formRegistro').reset();
+            const modal = new bootstrap.Modal(document.getElementById('modalRegistro'));
+            modal.show();
+        }
+
+        function abrirModalEditar(idCliente) {
+            fetch(`/admin/clientes/buscar/${idCliente}`)
+                .then(response => response.json())
+                .then(cliente => {
+                    document.getElementById('editIdCliente').value = cliente.idCliente;
+                    document.getElementById('editTipoCliente').value = cliente.tipoCliente;
+                    document.getElementById('editTipoDocumento').value = cliente.tipoDocumento;
+                    document.getElementById('editNumeroDocumento').value = cliente.numeroDocumento;
+                    document.getElementById('editNombreCliente').value = cliente.nombreCliente;
+                    document.getElementById('editNombreComercial').value = cliente.nombreComercial || '';
+                    document.getElementById('editTelefono').value = cliente.telefono || '';
+                    document.getElementById('editEmail').value = cliente.email || '';
+                    document.getElementById('editDireccion').value = cliente.direccion || '';
+                    document.getElementById('editEstadoValor').value = cliente.estadoValor || '';
+
+                    const modal = new bootstrap.Modal(document.getElementById('modalEditar'));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    mostrarError('Error al cargar datos del cliente');
+                });
+        }
+
+       /**
+         * Realiza todas las validaciones del formulario y retorna true si pasa, false si falla.
+         * @returns {boolean}
+         */
+        function validarClienteForm() {
+            // La validación solo limpia y valida al ser llamada, no al cargar
+            limpiarClasesValidacion(); 
+            
+            document.getElementById('fechaRegistro').value = new Date().toISOString().slice(0, 10);
+            
+            let esValido = true;
+            
+            // Validaciones obligatorias
+            if (!validarCampoObligatorio(tipoClienteSelect, 'feedbackTipoCliente')) esValido = false;
+            if (!validarCampoObligatorio(tipoDocumentoSelect, 'feedbackTipoDocumento')) esValido = false;
+            if (!validarCampoTexto(nombreClienteInput, 'feedbackNombreCliente', 'El nombre es obligatorio y no debe exceder 150 caracteres.', 150, true)) esValido = false;
+            
+            // Validación de documento
+            if (!validarNumeroDocumento()) esValido = false;
+            
+            // Validaciones de longitud de campos opcionales (Teléfono, Email, Dirección)
+            const telefonoInput = document.getElementById('telefono');
+            if (telefonoInput.value && !validarLongitud(telefonoInput, 13)) {
+                telefonoInput.classList.add('is-invalid');
+                document.getElementById('feedbackTelefono').textContent = 'El teléfono no debe exceder 13 caracteres.';
+                esValido = false;
+            } else if (telefonoInput.value) { telefonoInput.classList.add('is-valid'); }
+
+            const emailInput = document.getElementById('email');
+            if (emailInput.value) {
+                if (!validarLongitud(emailInput, 100) || !emailInput.checkValidity()) {
+                    emailInput.classList.add('is-invalid');
+                    document.getElementById('feedbackEmail').textContent = 'Debe ser un formato válido y no exceder 100 caracteres.';
+                    esValido = false;
+                } else { emailInput.classList.add('is-valid'); }
+            } 
+            
+            const direccionInput = document.getElementById('direccion');
+            if (direccionInput.value && !validarLongitud(direccionInput, 200)) {
+                direccionInput.classList.add('is-invalid');
+                document.getElementById('feedbackDireccion').textContent = 'La dirección no debe exceder 200 caracteres.';
+                esValido = false;
+            } else if (direccionInput.value) { direccionInput.classList.add('is-valid'); }
+
+
+            // 6. Si la validación falla, mostrar SweetAlert y detener.
+            if (!esValido) {
+                Swal.fire('Error de Validación', 'Por favor, corrija los campos marcados en rojo.', 'error');
+            }
+            
+            return esValido;
+        }
+
+
+        // --- FUNCIÓN DE GUARDADO MODIFICADA ---
+        function guardarCliente() {
+            // 1. Ejecutar las validaciones, solo se procede si es true
+            if (!validarClienteForm()) {
+                return; 
+            }
+
+            // 2. Si la validación es exitosa, se procede a la construcción del objeto (con null para opcionales vacíos)
+            const cliente = {
+                tipoCliente: tipoClienteSelect.value,
+                tipoDocumento: tipoDocumentoSelect.value,
+                numeroDocumento: numeroDocumentoInput.value,
+                
+                // Campos obligatorios
+                nombreCliente: nombreClienteInput.value, 
+                
+                // Campos opcionales: enviar null si están vacíos
+                nombreComercial: nombreComercialInput.value || null,
+                telefono: document.getElementById('telefono').value || null,
+                email: document.getElementById('email').value || null,
+                direccion: document.getElementById('direccion').value || null,
+                estadoValor: document.getElementById('estadoValor').value || null,
+                fechaRegistro: document.getElementById('fechaRegistro').value
+            };
+
+            // 3. Envío de datos al servidor (fetch)
+            fetch('/admin/clientes/guardar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cliente)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Manejo de errores 4xx o 5xx del servidor
+                    return response.json().then(error => Promise.reject(error));
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('Guardado!', data.message, 'success');
+                    
+                    // Limpieza y cierre después del éxito
+                    bootstrap.Modal.getInstance(modalRegistro).hide();
+                    cargarClientes(currentPage); 
+                } else {
+                    Swal.fire('Error al Guardar', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error en la petición:', error);
+                const errorMessage = error.message || 'Error de conexión o formato de datos.';
+                Swal.fire('Error de Conexión', errorMessage, 'error');
+            });
+        }
+
+        function actualizarCliente() {
+            const form = document.getElementById('formEditar');
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Captura de valores
+            const idCliente = document.getElementById('editIdCliente').value;
+            const tipoDoc = document.getElementById('editTipoDocumento').value; // DNI, RUC, Pasaporte
+            const numDoc = document.getElementById('editNumeroDocumento').value;
+            const estado = document.getElementById('editEstadoValor').value; // BUEN PAGADOR, MAL PAGADOR
+
+            // 1. Validación preventiva: chk_cliente_documento
+            if (tipoDoc === 'DNI' && numDoc.length !== 8) {
+                return mostrarError('El DNI debe tener exactamente 8 caracteres');
+            }
+            if (tipoDoc === 'RUC' && numDoc.length !== 11) {
+                return mostrarError('El RUC debe tener exactamente 11 caracteres');
+            }
+
+            const cliente = {
+                idCliente: parseInt(idCliente),
+                tipoCliente: document.getElementById('editTipoCliente').value, // Persona o Empresa
+                tipoDocumento: tipoDoc,
+                numeroDocumento: numDoc,
+                nombreCliente: document.getElementById('editNombreCliente').value,
+                nombreComercial: document.getElementById('editNombreComercial').value || null,
+                telefono: document.getElementById('editTelefono').value || null,
+                email: document.getElementById('editEmail').value || null,
+                direccion: document.getElementById('editDireccion').value || null,
+                estadoValor: estado // Debe coincidir con el CONSTRAINT chk_estado_cliente
+            };
+
+            // 
+            
+            fetch('/admin/clientes/guardar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cliente)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    mostrarExito(data.message || 'Cliente actualizado correctamente');
+                    const modalElement = document.getElementById('modalEditar');
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) modalInstance.hide();
+                    cargarClientes(currentPage);
+                } else {
+                    // Aquí capturará errores como la UNIQUE KEY uk_cliente_documento
+                    mostrarError(data.message || 'Error al guardar cambios');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarError('Error de conexión con el servidor');
+            });
+        }
+
+        function confirmarEliminar(idCliente) {
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: '¿Desea eliminar este cliente? Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    eliminarCliente(idCliente);
+                }
+            });
+        }
+
+        function eliminarCliente(idCliente) {
+            fetch(`/admin/clientes/eliminar/${idCliente}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarExito(data.message);
+                    cargarClientes(currentPage);
+                } else {
+                    mostrarError(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarError('Error al eliminar cliente');
+            });
+        }
+
+        // ============================================
+        // FUNCIONES PARA HISTORIAL DE COMPRAS
+        // ============================================
+
+        function verHistorialCompras(idCliente, nombreCliente) {
+            clienteActualId = idCliente;
+            
+            // Mostrar sección de historial
+            document.getElementById('historialSection').style.display = 'block';
+            document.getElementById('clienteNombreHistorial').textContent = `Cliente: ${nombreCliente}`;
+            
+            // Limpiar filtros
+            filtrosActivos = {};
+            document.getElementById('filterTags').innerHTML = '';
+            document.getElementById('filterSelect').value = '';
+            
+            // Cargar historial
+            cargarHistorial(0);
+            
+            // Scroll suave hacia el historial
+            setTimeout(() => {
+                document.getElementById('historialSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        function cerrarHistorial() {
+            document.getElementById('historialSection').style.display = 'none';
+            clienteActualId = null;
+            filtrosActivos = {};
+            document.getElementById('filterTags').innerHTML = '';
+        }
+
+        function cargarHistorial(page) {
+            historialPage = page;
+            
+            // Construir URL con filtros
+            let url = `/admin/clientes/historial/${clienteActualId}?page=${page}&size=${pageSize}`;
+            
+            // Agregar filtros a la URL
+            if (filtrosActivos.fechaInicio) {
+                url += `&fechaInicio=${filtrosActivos.fechaInicio}`;
+            }
+            if (filtrosActivos.fechaFin) {
+                url += `&fechaFin=${filtrosActivos.fechaFin}`;
+            }
+            if (filtrosActivos.tipoComprobante) {
+                url += `&tipoComprobante=${filtrosActivos.tipoComprobante}`;
+            }
+            if (filtrosActivos.estadoSalida) {
+                url += `&estadoSalida=${filtrosActivos.estadoSalida}`;
+            }
+            if (filtrosActivos.tipoSalida) {
+                url += `&tipoSalida=${filtrosActivos.tipoSalida}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        mostrarHistorial(data.data);
+                        actualizarPaginacionHistorial(data.data);
+                    } else {
+                        mostrarError(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Mostrar datos de ejemplo por ahora
+                    mostrarHistorialEjemplo();
+                });
+        }
+
+        function mostrarHistorial(data) {
+            const tbody = document.getElementById('tablaHistorialBody');
+            tbody.innerHTML = '';
+
+            if (!data.content || data.content.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>No hay compras registradas para este cliente</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            data.content.forEach(salida => {
+                const estadoBadge = obtenerBadgeEstado(salida.estadoSalida);
+                
+                const row = `
+                    <tr>
+                        <td><strong>${salida.numeroSalida}</strong></td>
+                        <td>${formatearFecha(salida.fechaSalida)}</td>
+                        <td>${salida.tipoComprobante}</td>
+                        <td>${salida.tipoSalida}</td>
+                        <td><strong>S/ ${parseFloat(salida.montoTotal).toFixed(2)}</strong></td>
+                        <td>${estadoBadge}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="verDetalleSalida(${salida.idSalida})" title="Ver Detalle">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function mostrarHistorialEjemplo() {
+            const tbody = document.getElementById('tablaHistorialBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td><strong>V-2025-001</strong></td>
+                    <td>05/10/2025</td>
+                    <td>Boleta</td>
+                    <td>Venta</td>
+                    <td><strong>S/ 1,250.00</strong></td>
+                    <td><span class="badge bg-success">Completada</span></td>
+                    <td>
+                        <button class="btn btn-action btn-edit" onclick="verDetalleSalida(1)" title="Ver Detalle">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>V-2025-002</strong></td>
+                    <td>03/10/2025</td>
+                    <td>Factura</td>
+                    <td>Venta</td>
+                    <td><strong>S/ 3,480.00</strong></td>
+                    <td><span class="badge bg-success">Completada</span></td>
+                    <td>
+                        <button class="btn btn-action btn-edit" onclick="verDetalleSalida(2)" title="Ver Detalle">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function actualizarPaginacionHistorial(data) {
+            historialTotalPages = data.totalPages || 1;
+            const info = document.getElementById('paginationInfoHistorial');
+            const controls = document.getElementById('paginationControlsHistorial');
+
+            // Actualizar información
+            const inicio = (data.currentPage || 0) * pageSize + 1;
+            const fin = Math.min(((data.currentPage || 0) + 1) * pageSize, data.totalElements || 0);
+            info.textContent = `Mostrando ${inicio} - ${fin} de ${data.totalElements || 0} compras`;
+
+            // Actualizar controles
+            controls.innerHTML = '';
+
+            const currentPageNum = data.currentPage || 0;
+            const isFirst = currentPageNum === 0;
+            const isLast = currentPageNum === historialTotalPages - 1;
+
+            // Botón anterior
+            controls.innerHTML += `
+                <li class="page-item ${isFirst ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cargarHistorial(${currentPageNum - 1}); return false;">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            `;
+
+            // Números de página
+            const startPage = Math.max(0, currentPageNum - 2);
+            const endPage = Math.min(historialTotalPages - 1, currentPageNum + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const active = i === currentPageNum ? 'active' : '';
+                controls.innerHTML += `
+                    <li class="page-item ${active}">
+                        <a class="page-link" href="#" onclick="cargarHistorial(${i}); return false;">
+                            ${i + 1}
+                        </a>
+                    </li>
+                `;
+            }
+
+            // Botón siguiente
+            controls.innerHTML += `
+                <li class="page-item ${isLast ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cargarHistorial(${currentPageNum + 1}); return false;">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            `;
+        }
+
+        function verDetalleSalida(idSalida) {
+            Swal.fire({
+                title: 'Detalle de Venta',
+                html: '<p>Funcionalidad en desarrollo...</p>',
+                icon: 'info',
+                confirmButtonColor: '#6f42c1'
+            });
+        }
+
+        // ============================================
+        // FUNCIONES PARA FILTROS
+        // ============================================
+
+        function agregarFiltro() {
+            const select = document.getElementById('filterSelect');
+            const tipoFiltro = select.value;
+            
+            if (!tipoFiltro) return;
+            
+            // Verificar si el filtro ya existe
+            const filterTags = document.getElementById('filterTags');
+            const existingFilter = filterTags.querySelector(`[data-filter="${tipoFiltro}"]`);
+            
+            if (existingFilter) {
+                // Si ya existe, no agregar duplicado
+                select.value = '';
+                mostrarAlerta('Este filtro ya está agregado');
+                return;
+            }
+            
+            // Crear el tag del filtro
+            const filterTag = document.createElement('div');
+            filterTag.className = 'filter-tag';
+            filterTag.setAttribute('data-filter', tipoFiltro);
+            
+            let filterHTML = '';
+            
+            switch(tipoFiltro) {
+                case 'fecha':
+                    filterHTML = `
+                        <span class="filter-tag-label">Rango de Fechas:</span>
+                        <input type="date" class="filter-tag-input" id="filtroFechaInicio" 
+                            onchange="actualizarFiltro('fechaInicio', this.value)">
+                        <span style="color: var(--primary-purple); font-weight: bold;">hasta</span>
+                        <input type="date" class="filter-tag-input" id="filtroFechaFin"
+                            onchange="actualizarFiltro('fechaFin', this.value)">
+                    `;
+                    break;
+                    
+                case 'tipoComprobante':
+                    filterHTML = `
+                        <span class="filter-tag-label">Tipo Comprobante:</span>
+                        <select class="filter-tag-select" id="filtroTipoComprobante" 
+                                onchange="actualizarFiltro('tipoComprobante', this.value)">
+                            <option value="">Seleccione...</option>
+                            <option value="Boleta">Boleta</option>
+                            <option value="Factura">Factura</option>
+                            <option value="Guia">Guía de Remisión</option>
+                            <option value="Nota">Nota de Venta</option>
+                        </select>
+                    `;
+                    break;
+                    
+                case 'estadoSalida':
+                    filterHTML = `
+                        <span class="filter-tag-label">Estado Salida:</span>
+                        <select class="filter-tag-select" id="filtroEstadoSalida"
+                                onchange="actualizarFiltro('estadoSalida', this.value)">
+                            <option value="">Seleccione...</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Completada">Completada</option>
+                            <option value="Anulada">Anulada</option>
+                        </select>
+                    `;
+                    break;
+                    
+                case 'tipoSalida':
+                    filterHTML = `
+                        <span class="filter-tag-label">Tipo Salida:</span>
+                        <select class="filter-tag-select" id="filtroTipoSalida"
+                                onchange="actualizarFiltro('tipoSalida', this.value)">
+                            <option value="">Seleccione...</option>
+                            <option value="Venta">Venta</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Devolucion">Devolución</option>
+                        </select>
+                    `;
+                    break;
+            }
+            
+            filterHTML += `
+                <button class="filter-tag-remove" onclick="removerFiltro('${tipoFiltro}')" title="Eliminar filtro">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            filterTag.innerHTML = filterHTML;
+            filterTags.appendChild(filterTag);
+            
+            // Limpiar el select
+            select.value = '';
+        }
+
+        function removerFiltro(tipoFiltro) {
+            const filterTags = document.getElementById('filterTags');
+            const filterTag = filterTags.querySelector(`[data-filter="${tipoFiltro}"]`);
+            
+            if (filterTag) {
+                filterTag.remove();
+            }
+            
+            // Remover del objeto de filtros activos
+            if (tipoFiltro === 'fecha') {
+                delete filtrosActivos.fechaInicio;
+                delete filtrosActivos.fechaFin;
+            } else if (tipoFiltro === 'tipoComprobante') {
+                delete filtrosActivos.tipoComprobante;
+            } else if (tipoFiltro === 'estadoSalida') {
+                delete filtrosActivos.estadoSalida;
+            } else if (tipoFiltro === 'tipoSalida') {
+                delete filtrosActivos.tipoSalida;
+            }
+        }
+
+        function actualizarFiltro(nombreFiltro, valor) {
+            filtrosActivos[nombreFiltro] = valor;
+        }
+
+        function aplicarFiltros() {
+            // Validar que al menos un filtro tenga valor
+            const hayFiltros = Object.keys(filtrosActivos).some(key => filtrosActivos[key]);
+            
+            if (!hayFiltros) {
+                mostrarAlerta('Debe seleccionar al menos un filtro con valor');
+                return;
+            }
+            
+            // Validar rango de fechas si existe
+            if (filtrosActivos.fechaInicio && filtrosActivos.fechaFin) {
+                if (new Date(filtrosActivos.fechaInicio) > new Date(filtrosActivos.fechaFin)) {
+                    mostrarError('La fecha de inicio no puede ser mayor a la fecha fin');
+                    return;
+                }
+            }
+            
+            // Cargar historial con filtros
+            cargarHistorial(0);
+            mostrarExito('Filtros aplicados correctamente');
+        }
+
+        // ============================================
+        // FUNCIONES AUXILIARES
+        // ============================================
+
+        function formatearFecha(fecha) {
+            if (!fecha) return '-';
+            const date = new Date(fecha);
+            return date.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        function obtenerBadgeEstado(estado) {
+            const badges = {
+                'Pendiente': '<span class="badge bg-warning text-dark">Pendiente</span>',
+                'Completada': '<span class="badge bg-success">Completada</span>',
+                'Anulada': '<span class="badge bg-danger">Anulada</span>'
+            };
+            return badges[estado] || `<span class="badge bg-secondary">${estado}</span>`;
+        }
+
+        function mostrarExito(mensaje) {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: mensaje,
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje,
+                confirmButtonColor: '#dc3545'
+            });
+        }
+
+        function mostrarAlerta(mensaje) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atención',
+                text: mensaje,
+                confirmButtonColor: '#ffc107'
+            });
+        }
+    </script>
+
+</body>
+</html>

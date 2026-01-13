@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Inventario</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f2f6ff;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 10px;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .sidebar img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logout-btn i {
+            margin-right: 5px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto; /* Permite el scroll en la sección principal */
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .field-error {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+        
+        /* Estilos de vistaCatalogo */
+        .catalog-module {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #e3e6f0;
+        }
+        
+        
+        .module-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f8f9fa 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .module-title {
+             color: black;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-register {
+            background-color: #6d3c7c;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .btn-register:hover {
+            background-color: #6d3c7c;
+            color: white;
+        }
+        
+        .module-content {
+            padding: 25px;
+        }
+        
+        .table {
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .table thead th {
+            background-color: #f8f9fc;
+            border: none;
+            font-weight: 600;
+            color: #5a5c69;
+            padding: 15px 12px;
+            font-size: 0.9rem;
+        }
+        
+        .table tbody td {
+            border: none;
+            padding: 12px;
+            vertical-align: middle;
+            color: #5a5c69;
+        }
+        
+        .table tbody tr {
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .table tbody tr:hover {
+            background-color: #f8f9fc;
+        }
+        
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 5px;
+            border: none;
+        }
+        
+        .btn-edit {
+            background-color: #007bff;
+            color: #212529;
+        }
+        
+        .btn-edit:hover {
+            background-color: #007bff;
+            color: #212529;
+        }
+        
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background-color: #c82333;
+            color: white;
+        }
+        
+        .pagination {
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .pagination .page-link {
+            color: #9399b4;
+            border: 1px solid #dee2e6;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: #e4e6ed;
+            border-color: #b6bee0;
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #6d3c7c 0%, #6d3c7c 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            border: none;
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e3e6f0;
+            padding: 12px 15px;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #5a5c69;
+            margin-bottom: 8px;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px;
+        }
+
+        .is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 4px rgba(220, 53, 69, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div>
+        <a href="/admin/vistaAdmin">
+            <img src="/images/Logo.png" alt="Logo">
+        </a>
+        <h2>SISTEMA INVENTARIO</h2>
+    </div>
+    <form action="/logout" method="post">
+        <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </form>
+</div>
+
+<div class="main">
+    <div class="main-container">
+        <div class="container-fluid">
+            <!-- Título principal -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    
+                </div>
+            </div>
+            
+            <!-- Fila 1: Marcas y Categorías -->
+            <div class="row">
+                <!-- MÓDULO MARCAS -->
+                <div class="col-lg-6">
+                    <div class="catalog-module">
+                        <div class="module-header">
+                            <h3 class="module-title">
+                                <i class="fas fa-tags"></i>
+                                Marcas
+                            </h3>
+                            <button class="btn btn-register" onclick="prepararNuevoRegistroMarca()">
+                                <i class="fas fa-plus me-2"></i>Registrar
+                            </button>
+                        </div>
+                        <div class="module-content">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Origen</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-marcas">
+                                        <tr th:each="marca : ${marcas.content}">
+                                            <td th:text="${marca.idMarca}"></td>
+                                            <td th:text="${marca.nombre}"></td>
+                                            <td th:text="${marca.origen}"></td>
+                                            <td>
+                                                <button class="btn btn-action btn-edit" th:onclick="'editarMarca(' + ${marca.idMarca} + ')'">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" th:onclick="'eliminarMarca(' + ${marca.idMarca} + ')'">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Paginación Marcas -->
+                            <nav>
+                                <ul class="pagination" id="pagination-marcas">
+                                    <!-- Se llena dinámicamente -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MÓDULO CATEGORÍAS -->
+                <div class="col-lg-6">
+                    <div class="catalog-module">
+                        <div class="module-header">
+                            <h3 class="module-title">
+                                <i class="fas fa-folder"></i>
+                                Categorías
+                            </h3>
+                            <button class="btn btn-register" onclick="prepararNuevoRegistroCategoria()">
+                                <i class="fas fa-plus me-2"></i>Registrar
+                            </button>
+                        </div>
+                        <div class="module-content">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-categorias">
+                                        <tr th:each="categoria : ${categorias.content}">
+                                            <td th:text="${categoria.idCategoria}"></td>
+                                            <td th:text="${categoria.nombreCategoria}"></td>
+                                            <td>
+                                                <button class="btn btn-action btn-edit" th:onclick="'editarCategoria(' + ${categoria.idCategoria} + ')'">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" th:onclick="'eliminarCategoria(' + ${categoria.idCategoria} + ')'">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Paginación Categorías -->
+                            <nav>
+                                <ul class="pagination" id="pagination-categorias">
+                                    <!-- Se llena dinámicamente -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fila 2: Materiales Principales y Colores -->
+            <div class="row">
+                <!-- MÓDULO MATERIALES PRINCIPALES -->
+                <div class="col-lg-6">
+                    <div class="catalog-module">
+                        <div class="module-header">
+                            <h3 class="module-title">
+                                <i class="fas fa-cubes"></i>
+                                Materiales Principales
+                            </h3>
+                            <button class="btn btn-register" onclick="prepararNuevoRegistroMaterialPrincipal()">
+                                <i class="fas fa-plus me-2"></i>Registrar
+                            </button>
+                        </div>
+                        <div class="module-content">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Material</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-materialesPrincipales">
+                                        <tr th:each="material : ${materialesPrincipales.content}">
+                                            <td th:text="${material.idMaterialPrincipal}"></td>
+                                            <td th:text="${material.nombreMaterial}"></td>
+                                            <td>
+                                                <button class="btn btn-action btn-edit" th:onclick="'editarMaterialPrincipal(' + ${material.idMaterialPrincipal} + ')'">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" th:onclick="'eliminarMaterialPrincipal(' + ${material.idMaterialPrincipal} + ')'">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Paginación Materiales Principales -->
+                            <nav>
+                                <ul class="pagination" id="pagination-materialesPrincipales">
+                                    <!-- Se llena dinámicamente -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MÓDULO COLORES -->
+                <div class="col-lg-6">
+                    <div class="catalog-module">
+                        <div class="module-header">
+                            <h3 class="module-title">
+                                <i class="fas fa-palette"></i>
+                                Colores
+                            </h3>
+                            <button class="btn btn-register" onclick="prepararNuevoRegistroColor()">
+                                <i class="fas fa-plus me-2"></i>Registrar
+                            </button>
+                        </div>
+                        <div class="module-content">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Color</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-colores">
+                                        <tr th:each="color : ${colores.content}">
+                                            <td th:text="${color.idColor}"></td>
+                                            <td th:text="${color.nombreColor}"></td>
+                                            <td>
+                                                <button class="btn btn-action btn-edit" th:onclick="'editarColor(' + ${color.idColor} + ')'">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" th:onclick="'eliminarColor(' + ${color.idColor} + ')'">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Paginación Colores -->
+                            <nav>
+                                <ul class="pagination" id="pagination-colores">
+                                    <!-- Se llena dinámicamente -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fila 3: Tipos de Item y Tallas -->
+            <div class="row">
+                <!-- MÓDULO TIPOS DE ITEM -->
+                <div class="col-lg-6">
+                    <div class="catalog-module">
+                        <div class="module-header">
+                            <h3 class="module-title">
+                                <i class="fas fa-clipboard-list"></i>
+                                Tipos de Item
+                            </h3>
+                            <button class="btn btn-register" onclick="prepararNuevoRegistroTipoItem()">
+                                <i class="fas fa-plus me-2"></i>Registrar
+                            </button>
+                        </div>
+                        <div class="module-content">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Descripción</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-tiposItem">
+                                        <tr th:each="tipoItem : ${tiposItem.content}">
+                                            <td th:text="${tipoItem.idTipoItem}"></td>
+                                            <td th:text="${tipoItem.descripcion}"></td>
+                                            <td>
+                                                <button class="btn btn-action btn-edit" th:onclick="'editarTipoItem(' + ${tipoItem.idTipoItem} + ')'">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" th:onclick="'eliminarTipoItem(' + ${tipoItem.idTipoItem} + ')'">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Paginación Tipos de Item -->
+                            <nav>
+                                <ul class="pagination" id="pagination-tiposItem">
+                                    <!-- Se llena dinámicamente -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MÓDULO TALLAS -->
+                <div class="col-lg-6">
+                    <div class="catalog-module">
+                        <div class="module-header">
+                            <h3 class="module-title">
+                                <i class="fas fa-ruler"></i>
+                                Tallas
+                            </h3>
+                            <button class="btn btn-register" onclick="prepararNuevoRegistroTalla()">
+                                <i class="fas fa-plus me-2"></i>Registrar
+                            </button>
+                        </div>
+                        <div class="module-content">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Valor</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-tallas">
+                                        <tr th:each="talla : ${tallas.content}">
+                                            <td th:text="${talla.idTalla}"></td>
+                                            <td th:text="${talla.valor}"></td>
+                                            <td>
+                                                <button class="btn btn-action btn-edit" th:onclick="'editarTalla(' + ${talla.idTalla} + ')'">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" th:onclick="'eliminarTalla(' + ${talla.idTalla} + ')'">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Paginación Tallas -->
+                            <nav>
+                                <ul class="pagination" id="pagination-tallas">
+                                    <!-- Se llena dinámicamente -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fila 4: Géneros y Tipos de Persona -->
+            <div class="row">
+                <!-- MÓDULO GÉNEROS -->
+                <div class="col-lg-6">
+                    <div class="catalog-module">
+                        <div class="module-header">
+                            <h3 class="module-title">
+                                <i class="fas fa-venus-mars"></i>
+                                Géneros
+                            </h3>
+                            <button class="btn btn-register" onclick="prepararNuevoRegistroGenero()">
+                                <i class="fas fa-plus me-2"></i>Registrar
+                            </button>
+                        </div>
+                        <div class="module-content">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Género</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-generos">
+                                        <tr th:each="genero : ${generos.content}">
+                                            <td th:text="${genero.idGenero}"></td>
+                                            <td th:text="${genero.nombreGenero}"></td>
+                                            <td>
+                                                <button class="btn btn-action btn-edit" th:onclick="'editarGenero(' + ${genero.idGenero} + ')'">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" th:onclick="'eliminarGenero(' + ${genero.idGenero} + ')'">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Paginación Géneros -->
+                            <nav>
+                                <ul class="pagination" id="pagination-generos">
+                                    <!-- Se llena dinámicamente -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MÓDULO TIPOS DE PERSONA -->
+                <div class="col-lg-6">
+                    <div class="catalog-module">
+                        <div class="module-header">
+                            <h3 class="module-title">
+                                <i class="fas fa-users"></i>
+                                Tipos de Persona
+                            </h3>
+                            <button class="btn btn-register" onclick="prepararNuevoRegistroTipoPersona()">
+                                <i class="fas fa-plus me-2"></i>Registrar
+                            </button>
+                        </div>
+                        <div class="module-content">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Tipo Persona</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-tiposPersona">
+                                        <tr th:each="tipoPersona : ${tiposPersona.content}">
+                                            <td th:text="${tipoPersona.idTipoPersona}"></td>
+                                            <td th:text="${tipoPersona.nombreTipoPersona}"></td>
+                                            <td>
+                                                <button class="btn btn-action btn-edit" th:onclick="'editarTipoPersona(' + ${tipoPersona.idTipoPersona} + ')'">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" th:onclick="'eliminarTipoPersona(' + ${tipoPersona.idTipoPersona} + ')'">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Paginación Tipos de Persona -->
+                            <nav>
+                                <ul class="pagination" id="pagination-tiposPersona">
+                                    <!-- Se llena dinámicamente -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fila 5: Materiales de Suela y Estados de Producto -->
+            <div class="row">
+                <!-- MÓDULO MATERIALES DE SUELA -->
+                <div class="col-lg-6">
+                    <div class="catalog-module">
+                        <div class="module-header">
+                            <h3 class="module-title">
+                                <i class="fas fa-shoe-prints"></i>
+                                Materiales de Suela
+                            </h3>
+                            <button class="btn btn-register" onclick="prepararNuevoRegistroMaterialSuela()">
+                                <i class="fas fa-plus me-2"></i>Registrar
+                            </button>
+                        </div>
+                        <div class="module-content">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Descripción</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-materialesSuela">
+                                        <tr th:each="materialSuela : ${materialesSuela.content}">
+                                            <td th:text="${materialSuela.idMaterialSuela}"></td>
+                                            <td th:text="${materialSuela.descripcionSuela}"></td>
+                                            <td>
+                                                <button class="btn btn-action btn-edit" th:onclick="'editarMaterialSuela(' + ${materialSuela.idMaterialSuela} + ')'">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" th:onclick="'eliminarMaterialSuela(' + ${materialSuela.idMaterialSuela} + ')'">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Paginación Materiales de Suela -->
+                            <nav>
+                                <ul class="pagination" id="pagination-materialesSuela">
+                                    <!-- Se llena dinámicamente -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MÓDULO ESTADOS DE PRODUCTO -->
+                <div class="col-lg-6">
+                    <div class="catalog-module">
+                        <div class="module-header">
+                            <h3 class="module-title">
+                                <i class="fas fa-toggle-on"></i>
+                                Estados de Producto
+                            </h3>
+                            <button class="btn btn-register" onclick="prepararNuevoRegistroEstadoProducto()">
+                                <i class="fas fa-plus me-2"></i>Registrar
+                            </button>
+                        </div>
+                        <div class="module-content">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Descripción</th>
+                                            <th>Afecta Stock</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-estadosProducto">
+                                        <tr th:each="estadoProducto : ${estadosProducto.content}">
+                                            <td th:text="${estadoProducto.idEstadoProducto}"></td>
+                                            <td th:text="${estadoProducto.descripcionEstado}"></td>
+                                            <td>
+                                                <span th:if="${estadoProducto.afectaStock}" class="badge bg-success">Sí</span>
+                                                <span th:unless="${estadoProducto.afectaStock}" class="badge bg-danger">No</span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-action btn-edit" th:onclick="'editarEstadoProducto(' + ${estadoProducto.idEstadoProducto} + ')'">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" th:onclick="'eliminarEstadoProducto(' + ${estadoProducto.idEstadoProducto} + ')'">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Paginación Estados de Producto -->
+                            <nav>
+                                <ul class="pagination" id="pagination-estadosProducto">
+                                    <!-- Se llena dinámicamente -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALES -->
+    
+    <!-- Modal Marca -->
+    <div class="modal fade" id="modalMarca" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="titleMarca">
+                        <i class="fas fa-tags me-2"></i>Nueva Marca
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formMarca">
+                        <input type="hidden" id="idMarca">
+                        <div class="mb-3">
+                            <label for="nombreMarca" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombreMarca" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="origenMarca" class="form-label">Origen</label>
+                            <input type="text" class="form-control" id="origenMarca">
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcionMarca" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcionMarca" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarMarca()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Categoría -->
+    <div class="modal fade" id="modalCategoria" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="titleCategoria">
+                        <i class="fas fa-folder me-2"></i>Nueva Categoría
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCategoria">
+                        <input type="hidden" id="idCategoria">
+                        <div class="mb-3">
+                            <label for="nombreCategoria" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombreCategoria" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarCategoria()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Material Principal -->
+    <div class="modal fade" id="modalMaterialPrincipal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="titleMaterialPrincipal">
+                        <i class="fas fa-cubes me-2"></i>Nuevo Material Principal
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formMaterialPrincipal">
+                        <input type="hidden" id="idMaterialPrincipal">
+                        <div class="mb-3">
+                            <label for="nombreMaterial" class="form-label">Material</label>
+                            <input type="text" class="form-control" id="nombreMaterial" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarMaterialPrincipal()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Color -->
+    <div class="modal fade" id="modalColor" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="titleColor">
+                        <i class="fas fa-palette me-2"></i>Nuevo Color
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formColor">
+                        <input type="hidden" id="idColor">
+                        <div class="mb-3">
+                            <label for="nombreColor" class="form-label">Color</label>
+                            <input type="text" class="form-control" id="nombreColor" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarColor()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tipo Item -->
+    <div class="modal fade" id="modalTipoItem" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="titleTipoItem">
+                        <i class="fas fa-clipboard-list me-2"></i>Nuevo Tipo de Item
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formTipoItem">
+                        <input type="hidden" id="idTipoItem">
+                        <div class="mb-3">
+                            <label for="descripcionTipoItem" class="form-label">Descripción</label>
+                            <select class="form-control" id="descripcionTipoItem" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="Producto">Producto</option>
+                                <option value="Suministro">Suministro</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarTipoItem()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Talla -->
+    <div class="modal fade" id="modalTalla" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="titleTalla">
+                        <i class="fas fa-ruler me-2"></i>Nueva Talla
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formTalla">
+                        <input type="hidden" id="idTalla">
+                        <div class="mb-3">
+                            <label for="valorTalla" class="form-label">Valor</label>
+                            <input type="text" class="form-control" id="valorTalla" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarTalla()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Género -->
+    <div class="modal fade" id="modalGenero" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="titleGenero">
+                        <i class="fas fa-venus-mars me-2"></i>Nuevo Género
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formGenero">
+                        <input type="hidden" id="idGenero">
+                        <div class="mb-3">
+                            <label for="nombreGenero" class="form-label">Género</label>
+                            <input type="text" class="form-control" id="nombreGenero" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarGenero()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tipo Persona -->
+    <div class="modal fade" id="modalTipoPersona" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="titleTipoPersona">
+                        <i class="fas fa-users me-2"></i>Nuevo Tipo de Persona
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formTipoPersona">
+                        <input type="hidden" id="idTipoPersona">
+                        <div class="mb-3">
+                            <label for="nombreTipoPersona" class="form-label">Tipo Persona</label>
+                            <input type="text" class="form-control" id="nombreTipoPersona" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarTipoPersona()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Material Suela -->
+    <div class="modal fade" id="modalMaterialSuela" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="titleMaterialSuela">
+                        <i class="fas fa-shoe-prints me-2"></i>Nuevo Material de Suela
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formMaterialSuela">
+                        <input type="hidden" id="idMaterialSuela">
+                        <div class="mb-3">
+                            <label for="descripcionSuela" class="form-label">Descripción</label>
+                            <input type="text" class="form-control" id="descripcionSuela" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarMaterialSuela()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Estado Producto -->
+    <div class="modal fade" id="modalEstadoProducto" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="titleEstadoProducto">
+                        <i class="fas fa-toggle-on me-2"></i>Nuevo Estado de Producto
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEstadoProducto">
+                        <input type="hidden" id="idEstadoProducto">
+                        <div class="mb-3">
+                            <label for="descripcionEstado" class="form-label">Descripción</label>
+                            <input type="text" class="form-control" id="descripcionEstado" name="descripcionEstado" required>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="afectaStock"name="afectaStock"  checked>
+                                <label class="form-check-label" for="afectaStock">
+                                    Afecta Stock
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarEstadoProducto()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Scripts -->
+   
+    <script>
+        // Variables globales para manejo de paginación
+        let currentPage = {
+            marcas: 0,
+            categorias: 0,
+            materialesPrincipales: 0,
+            colores: 0,
+            tiposItem: 0,
+            tallas: 0,
+            generos: 0,
+            tiposPersona: 0,
+            materialesSuela: 0,
+            estadosProducto: 0
+        };
+
+
+        function validarFormulario(formId) {
+            const form = document.getElementById(formId);
+            const campos = form.querySelectorAll('input[required], select[required], textarea[required]');
+            let valid = true;
+
+            campos.forEach(campo => {
+                if (!campo.value.trim()) {
+                    campo.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    campo.classList.remove('is-invalid');
+                }
+            });
+
+            if (!valid) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos incompletos',
+                    text: 'Por favor, complete todos los campos obligatorios antes de guardar.',
+                    confirmButtonColor: '#3085d6'
+                });
+            }
+
+            return valid;
+        }
+
+        // Funciones para manejar paginación
+        function changePage(module, page) {
+            currentPage[module] = page;
+            loadModuleData(module, page);
+        }
+
+        function loadModuleData(module, page) {
+            fetch(`/admin/catalogo/${module}?page=${page}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateTable(module, data);
+                    updatePagination(module, data);
+                })
+                .catch(error => console.error(`Error cargando los datos de ${module}:`, error));
+        }
+
+        function updateTable(module, data) {
+            const tbody = document.getElementById(`tbody-${module}`);
+            tbody.innerHTML = '';
+            
+            if (data.content && data.content.length > 0) {
+                data.content.forEach(item => {
+                    tbody.appendChild(createTableRow(module, item));
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="100%" class="no-data">No hay datos disponibles</td></tr>';
+            }
+        }
+
+        function createTableRow(module, item) {
+            const tr = document.createElement('tr');
+            
+            switch(module) {
+                case 'marcas':
+                    tr.innerHTML = `
+                        <td>${item.idMarca}</td>
+                        <td>${item.nombre}</td>
+                        <td>${item.origen || ''}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editarMarca(${item.idMarca})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="eliminarMarca(${item.idMarca})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    break;
+                case 'categorias':
+                    tr.innerHTML = `
+                        <td>${item.idCategoria}</td>
+                        <td>${item.nombreCategoria}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editarCategoria(${item.idCategoria})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="eliminarCategoria(${item.idCategoria})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    break;
+                case 'materialesPrincipales':
+                    tr.innerHTML = `
+                        <td>${item.idMaterialPrincipal}</td>
+                        <td>${item.nombreMaterial}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editarMaterialPrincipal(${item.idMaterialPrincipal})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="eliminarMaterialPrincipal(${item.idMaterialPrincipal})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    break;
+                case 'colores':
+                    tr.innerHTML = `
+                        <td>${item.idColor}</td>
+                        <td>${item.nombreColor}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editarColor(${item.idColor})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="eliminarColor(${item.idColor})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    break;
+                case 'tiposItem':
+                    tr.innerHTML = `
+                        <td>${item.idTipoItem}</td>
+                        <td>${item.descripcion}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editarTipoItem(${item.idTipoItem})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="eliminarTipoItem(${item.idTipoItem})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    break;
+                case 'tallas':
+                    tr.innerHTML = `
+                        <td>${item.idTalla}</td>
+                        <td>${item.valor}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editarTalla(${item.idTalla})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="eliminarTalla(${item.idTalla})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    break;
+                case 'generos':
+                    tr.innerHTML = `
+                        <td>${item.idGenero}</td>
+                        <td>${item.nombreGenero}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editarGenero(${item.idGenero})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="eliminarGenero(${item.idGenero})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    break;
+                case 'tiposPersona':
+                    tr.innerHTML = `
+                        <td>${item.idTipoPersona}</td>
+                        <td>${item.nombreTipoPersona}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editarTipoPersona(${item.idTipoPersona})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="eliminarTipoPersona(${item.idTipoPersona})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    break;
+                case 'materialesSuela':
+                    tr.innerHTML = `
+                        <td>${item.idMaterialSuela}</td>
+                        <td>${item.descripcionSuela}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editarMaterialSuela(${item.idMaterialSuela})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="eliminarMaterialSuela(${item.idMaterialSuela})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    break;
+                case 'estadosProducto':
+                    const afectaStock = item.afectaStock ? '<span class="badge bg-success">Sí</span>' : '<span class="badge bg-danger">No</span>';
+                    tr.innerHTML = `
+                        <td>${item.idEstadoProducto}</td>
+                        <td>${item.descripcionEstado}</td>
+                        <td>${afectaStock}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editarEstadoProducto(${item.idEstadoProducto})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="eliminarEstadoProducto(${item.idEstadoProducto})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    break;
+            }
+            return tr;
+        }
+
+        function updatePagination(module, data) {
+            const pagination = document.getElementById(`pagination-${module}`);
+            pagination.innerHTML = '';
+            
+            if (data.totalPages > 1) {
+                // Botón anterior
+                const prevBtn = document.createElement('li');
+                prevBtn.className = `page-item ${data.first ? 'disabled' : ''}`;
+                prevBtn.innerHTML = `<a class="page-link" href="#" onclick="changePage('${module}', ${data.number - 1})">Anterior</a>`;
+                pagination.appendChild(prevBtn);
+                
+                // Números de página
+                for (let i = 0; i < data.totalPages; i++) {
+                    const pageBtn = document.createElement('li');
+                    pageBtn.className = `page-item ${i === data.number ? 'active' : ''}`;
+                    pageBtn.innerHTML = `<a class="page-link" href="#" onclick="changePage('${module}', ${i})">${i + 1}</a>`;
+                    pagination.appendChild(pageBtn);
+                }
+                
+                // Botón siguiente
+                const nextBtn = document.createElement('li');
+                nextBtn.className = `page-item ${data.last ? 'disabled' : ''}`;
+                nextBtn.innerHTML = `<a class="page-link" href="#" onclick="changePage('${module}', ${data.number + 1})">Siguiente</a>`;
+                pagination.appendChild(nextBtn);
+            }
+        }
+
+        // Funciones CRUD (Create, Read, Update, Delete)
+        // --- Marcas ---
+
+        // ✅ Limpia los campos e inicia el modal
+        function prepararNuevoRegistroMarca() {
+            document.getElementById('formMarca').reset();
+            document.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+            document.getElementById('idMarca').value = '';
+            document.getElementById('titleMarca').innerText = 'Registrar Nueva Marca';
+            $('#modalMarca').modal('show');
+        }
+
+        // ✅ Guarda Marca con validación previa
+        function guardarMarca() {
+            // 🔥 Validación antes de guardar
+            if (!validarFormulario('formMarca')) return;
+
+            const id = document.getElementById('idMarca').value;
+            const data = {
+                idMarca: id,
+                nombre: document.getElementById('nombreMarca').value.trim(),
+                origen: document.getElementById('origenMarca').value.trim(),
+                descripcionMarca: document.getElementById('descripcionMarca').value.trim()
+            };
+
+            const url = id ? `/admin/catalogo/marcas/${id}` : '/admin/catalogo/marcas';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const modalElement = document.getElementById('modalMarca');
+                const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                modalInstance.hide();
+                loadModuleData('marcas', currentPage.marcas);
+                document.getElementById('formMarca').reset();
+                document.getElementById('titleMarca').innerText = 'Nueva Marca';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Marca guardada',
+                    text: 'La información se guardó correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: 'Ocurrió un problema al guardar la marca.',
+                });
+            });
+        }
+                function editarMarca(id) {
+            fetch(`/admin/catalogo/marcas/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('idMarca').value = data.idMarca;
+                    document.getElementById('nombreMarca').value = data.nombre;
+                    document.getElementById('origenMarca').value = data.origen || '';
+                    document.getElementById('descripcionMarca').value = data.descripcion || '';
+                    document.getElementById('titleMarca').innerText = 'Editar Marca';
+                    // Usamos jQuery para mantener la consistencia con prepararNuevoRegistroMarca
+                    $('#modalMarca').modal('show');
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function eliminarMarca(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta marca?')) {
+                fetch(`/admin/catalogo/marcas/${id}`, { method: 'DELETE' })
+                    .then(() => loadModuleData('marcas', currentPage.marcas))
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // --- Categorías ---
+        // ✅ Prepara modal para nueva categoría
+        function prepararNuevoRegistroCategoria() {
+            document.getElementById('formCategoria').reset();
+            document.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+            document.getElementById('idCategoria').value = ''; 
+            document.getElementById('titleCategoria').innerText = 'Registrar Nueva Categoría';
+            new bootstrap.Modal(document.getElementById('modalCategoria')).show();
+        }
+
+        // ✅ Guarda la categoría con validación previa
+        function guardarCategoria() {
+            // 🔥 Validar antes de enviar
+            if (!validarFormulario('formCategoria')) return;
+
+            const id = document.getElementById('idCategoria').value;
+            const data = {
+                idCategoria: id,
+                nombreCategoria: document.getElementById('nombreCategoria').value.trim()
+            };
+
+            const url = id ? `/admin/catalogo/categorias/${id}` : '/admin/catalogo/categorias';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                bootstrap.Modal.getInstance(document.getElementById('modalCategoria')).hide();
+                loadModuleData('categorias', currentPage.categorias);
+                document.getElementById('formCategoria').reset();
+                document.getElementById('titleCategoria').innerText = 'Nueva Categoría';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Categoría guardada',
+                    text: 'La categoría se guardó correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: 'Ocurrió un problema al guardar la categoría.',
+                });
+            });
+        }
+        function editarCategoria(id) {
+            fetch(`/admin/catalogo/categorias/${id}`)
+                .then(response => {
+                    // Verifica si la respuesta es exitosa (código 200)
+                    if (!response.ok) {
+                        throw new Error('Categoría no encontrada o error del servidor');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('idCategoria').value = data.idCategoria;
+                    document.getElementById('nombreCategoria').value = data.nombreCategoria;
+                    document.getElementById('titleCategoria').innerText = 'Editar Categoría';
+                    new bootstrap.Modal(document.getElementById('modalCategoria')).show();
+                })
+                .catch(error => {
+                    // Muestra un error si la categoría no se pudo obtener
+                    console.error('Error al obtener la categoría:', error);
+                    alert('No se pudo cargar la categoría para editar.');
+                });
+        }
+
+        function eliminarCategoria(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta categoría?')) {
+                fetch(`/admin/catalogo/categorias/${id}`, { method: 'DELETE' })
+                    .then(() => loadModuleData('categorias', currentPage.categorias))
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // --- Materiales Principales ---
+        function prepararNuevoRegistroMaterialPrincipal() {
+            // Limpia el formulario y resalta correctamente
+            document.getElementById('formMaterialPrincipal').reset();
+            document.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+
+            document.getElementById('idMaterialPrincipal').value = '';
+            document.getElementById('titleMaterialPrincipal').innerText = 'Registrar Nuevo Material Principal';
+            new bootstrap.Modal(document.getElementById('modalMaterialPrincipal')).show();
+        }
+
+        function guardarMaterialPrincipal() {
+            // 🔥 Validar antes de guardar
+            if (!validarFormulario('formMaterialPrincipal')) return;
+
+            const id = document.getElementById('idMaterialPrincipal').value;
+            const data = {
+                idMaterialPrincipal: id,
+                nombreMaterial: document.getElementById('nombreMaterial').value.trim()
+            };
+
+            const url = id ? `/admin/catalogo/materialesPrincipales/${id}` : '/admin/catalogo/materialesPrincipales';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                bootstrap.Modal.getInstance(document.getElementById('modalMaterialPrincipal')).hide();
+                loadModuleData('materialesPrincipales', currentPage.materialesPrincipales);
+                document.getElementById('formMaterialPrincipal').reset();
+                document.getElementById('titleMaterialPrincipal').innerText = 'Nuevo Material Principal';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Material Principal guardado',
+                    text: 'El material principal se guardó correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: 'Ocurrió un problema al guardar el material principal.',
+                });
+            });
+        }
+
+        function editarMaterialPrincipal(id) {
+            fetch(`/admin/catalogo/materialesPrincipales/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('idMaterialPrincipal').value = data.idMaterialPrincipal;
+                    document.getElementById('nombreMaterial').value = data.nombreMaterial;
+                    document.getElementById('titleMaterialPrincipal').innerText = 'Editar Material Principal';
+                    new bootstrap.Modal(document.getElementById('modalMaterialPrincipal')).show();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function eliminarMaterialPrincipal(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este material principal?')) {
+                fetch(`/admin/catalogo/materialesPrincipales/${id}`, { method: 'DELETE' })
+                    .then(() => loadModuleData('materialesPrincipales', currentPage.materialesPrincipales))
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // --- Colores ---
+
+        function prepararNuevoRegistroColor() {
+            // Limpia el formulario y elimina marcas de error
+            document.getElementById('formColor').reset();
+            document.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+
+            document.getElementById('idColor').value = '';
+            document.getElementById('titleColor').innerText = 'Registrar Nuevo Color';
+            new bootstrap.Modal(document.getElementById('modalColor')).show();
+        }
+
+        function guardarColor() {
+            // 🔥 Validar antes de guardar
+            if (!validarFormulario('formColor')) return;
+
+            const id = document.getElementById('idColor').value;
+            const data = {
+                idColor: id,
+                nombreColor: document.getElementById('nombreColor').value.trim()
+            };
+
+            const url = id ? `/admin/catalogo/colores/${id}` : '/admin/catalogo/colores';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                bootstrap.Modal.getInstance(document.getElementById('modalColor')).hide();
+                loadModuleData('colores', currentPage.colores);
+                document.getElementById('formColor').reset();
+                document.getElementById('titleColor').innerText = 'Nuevo Color';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Color guardado',
+                    text: 'El color se guardó correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: 'Ocurrió un problema al guardar el color.',
+                });
+            });
+        }
+        function editarColor(id) {
+            fetch(`/admin/catalogo/colores/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('idColor').value = data.idColor;
+                    document.getElementById('nombreColor').value = data.nombreColor;
+                    document.getElementById('titleColor').innerText = 'Editar Color';
+                    new bootstrap.Modal(document.getElementById('modalColor')).show();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function eliminarColor(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este color?')) {
+                fetch(`/admin/catalogo/colores/${id}`, { method: 'DELETE' })
+                    .then(() => loadModuleData('colores', currentPage.colores))
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // --- Tipos de Item ---
+        function prepararNuevoRegistroTipoItem() {
+            // Limpia el formulario y elimina marcas de error
+            document.getElementById('formTipoItem').reset();
+            document.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+
+            document.getElementById('idTipoItem').value = '';
+            document.getElementById('titleTipoItem').innerText = 'Registrar Nuevo Tipo de Item';
+            new bootstrap.Modal(document.getElementById('modalTipoItem')).show();
+        }
+
+        function guardarTipoItem() {
+            // 🔥 Validar antes de guardar
+            if (!validarFormulario('formTipoItem')) return;
+
+            const id = document.getElementById('idTipoItem').value;
+            const data = {
+                idTipoItem: id,
+                descripcion: document.getElementById('descripcionTipoItem').value.trim()
+            };
+
+            const url = id ? `/admin/catalogo/tiposItem/${id}` : '/admin/catalogo/tiposItem';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                bootstrap.Modal.getInstance(document.getElementById('modalTipoItem')).hide();
+                loadModuleData('tiposItem', currentPage.tiposItem);
+                document.getElementById('formTipoItem').reset();
+                document.getElementById('titleTipoItem').innerText = 'Nuevo Tipo de Item';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Tipo de Ítem guardado',
+                    text: 'El tipo de ítem se guardó correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: 'Ocurrió un problema al guardar el tipo de ítem.',
+                });
+            });
+        }
+
+        function editarTipoItem(id) {
+            fetch(`/admin/catalogo/tiposItem/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('idTipoItem').value = data.idTipoItem;
+                    document.getElementById('descripcionTipoItem').value = data.descripcion;
+                    document.getElementById('titleTipoItem').innerText = 'Editar Tipo de Item';
+                    new bootstrap.Modal(document.getElementById('modalTipoItem')).show();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function eliminarTipoItem(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este tipo de item?')) {
+                fetch(`/admin/catalogo/tiposItem/${id}`, { method: 'DELETE' })
+                    .then(() => loadModuleData('tiposItem', currentPage.tiposItem))
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // --- Tallas ---
+
+       function prepararNuevoRegistroTalla() {
+            // Limpia formulario y errores previos
+            document.getElementById('formTalla').reset();
+            document.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+
+            document.getElementById('idTalla').value = '';
+            document.getElementById('titleTalla').innerText = 'Registrar Nueva Talla';
+            new bootstrap.Modal(document.getElementById('modalTalla')).show();
+        }
+
+        function guardarTalla() {
+            // 🔍 Validación antes de enviar
+            if (!validarFormulario('formTalla')) return;
+
+            const id = document.getElementById('idTalla').value;
+            const data = {
+                idTalla: id,
+                valor: document.getElementById('valorTalla').value.trim()
+            };
+
+            const url = id ? `/admin/catalogo/tallas/${id}` : '/admin/catalogo/tallas';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                bootstrap.Modal.getInstance(document.getElementById('modalTalla')).hide();
+                loadModuleData('tallas', currentPage.tallas);
+                document.getElementById('formTalla').reset();
+                document.getElementById('titleTalla').innerText = 'Nueva Talla';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Talla guardada',
+                    text: 'La talla se guardó correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: 'Ocurrió un problema al guardar la talla.',
+                });
+            });
+        }
+
+        function editarTalla(id) {
+            fetch(`/admin/catalogo/tallas/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('idTalla').value = data.idTalla;
+                    document.getElementById('valorTalla').value = data.valor;
+                    document.getElementById('titleTalla').innerText = 'Editar Talla';
+                    new bootstrap.Modal(document.getElementById('modalTalla')).show();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function eliminarTalla(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta talla?')) {
+                fetch(`/admin/catalogo/tallas/${id}`, { method: 'DELETE' })
+                    .then(() => loadModuleData('tallas', currentPage.tallas))
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // --- Géneros ---
+
+        function prepararNuevoRegistroGenero() {
+            // Limpia formulario y errores previos
+            document.getElementById('formGenero').reset();
+            document.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+
+            document.getElementById('idGenero').value = '';
+            document.getElementById('titleGenero').innerText = 'Registrar Nuevo Género';
+            new bootstrap.Modal(document.getElementById('modalGenero')).show();
+        }
+
+        function guardarGenero() {
+            // 🔍 Validación antes de enviar
+            if (!validarFormulario('formGenero')) return;
+
+            const id = document.getElementById('idGenero').value;
+            const data = {
+                idGenero: id,
+                nombreGenero: document.getElementById('nombreGenero').value.trim()
+            };
+
+            const url = id ? `/admin/catalogo/generos/${id}` : '/admin/catalogo/generos';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                bootstrap.Modal.getInstance(document.getElementById('modalGenero')).hide();
+                loadModuleData('generos', currentPage.generos);
+                document.getElementById('formGenero').reset();
+                document.getElementById('titleGenero').innerText = 'Nuevo Género';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Género guardado',
+                    text: 'El género se guardó correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: 'Ocurrió un problema al guardar el género.',
+                });
+            });
+        }
+        function editarGenero(id) {
+            fetch(`/admin/catalogo/generos/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('idGenero').value = data.idGenero;
+                    document.getElementById('nombreGenero').value = data.nombreGenero;
+                    document.getElementById('titleGenero').innerText = 'Editar Género';
+                    new bootstrap.Modal(document.getElementById('modalGenero')).show();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function eliminarGenero(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este género?')) {
+                fetch(`/admin/catalogo/generos/${id}`, { method: 'DELETE' })
+                    .then(() => loadModuleData('generos', currentPage.generos))
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // --- Tipos de Persona ---
+
+        function prepararNuevoRegistroTipoPersona() {
+            // Limpia el formulario y errores previos
+            document.getElementById('formTipoPersona').reset();
+            document.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+
+            document.getElementById('idTipoPersona').value = '';
+            document.getElementById('titleTipoPersona').innerText = 'Registrar Nuevo Tipo de Persona';
+            new bootstrap.Modal(document.getElementById('modalTipoPersona')).show();
+        }
+
+        function guardarTipoPersona() {
+            // 🔍 Validar antes de guardar
+            if (!validarFormulario('formTipoPersona')) return;
+
+            const id = document.getElementById('idTipoPersona').value;
+            const data = {
+                idTipoPersona: id,
+                nombreTipoPersona: document.getElementById('nombreTipoPersona').value.trim()
+            };
+
+            const url = id ? `/admin/catalogo/tiposPersona/${id}` : '/admin/catalogo/tiposPersona';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                bootstrap.Modal.getInstance(document.getElementById('modalTipoPersona')).hide();
+                loadModuleData('tiposPersona', currentPage.tiposPersona);
+                document.getElementById('formTipoPersona').reset();
+                document.getElementById('titleTipoPersona').innerText = 'Nuevo Tipo de Persona';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Tipo de Persona guardado',
+                    text: 'El tipo de persona se guardó correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: 'Ocurrió un problema al guardar el tipo de persona.',
+                });
+            });
+        }
+
+        function editarTipoPersona(id) {
+            fetch(`/admin/catalogo/tiposPersona/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('idTipoPersona').value = data.idTipoPersona;
+                    document.getElementById('nombreTipoPersona').value = data.nombreTipoPersona;
+                    document.getElementById('titleTipoPersona').innerText = 'Editar Tipo de Persona';
+                    new bootstrap.Modal(document.getElementById('modalTipoPersona')).show();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function eliminarTipoPersona(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este tipo de persona?')) {
+                fetch(`/admin/catalogo/tiposPersona/${id}`, { method: 'DELETE' })
+                    .then(() => loadModuleData('tiposPersona', currentPage.tiposPersona))
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // --- Materiales de Suela ---
+
+        function prepararNuevoRegistroMaterialSuela() {
+            // Limpia formulario y errores previos
+            document.getElementById('formMaterialSuela').reset();
+            document.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+
+            document.getElementById('idMaterialSuela').value = '';
+            document.getElementById('titleMaterialSuela').innerText = 'Registrar Nuevo Material de Suela';
+            new bootstrap.Modal(document.getElementById('modalMaterialSuela')).show();
+        }
+
+        function guardarMaterialSuela() {
+            // 🔍 Validación del formulario antes de enviar
+            if (!validarFormulario('formMaterialSuela')) return;
+
+            const id = document.getElementById('idMaterialSuela').value;
+            const data = {
+                idMaterialSuela: id,
+                descripcionSuela: document.getElementById('descripcionSuela').value.trim()
+            };
+
+            const url = id ? `/admin/catalogo/materialesSuela/${id}` : '/admin/catalogo/materialesSuela';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                bootstrap.Modal.getInstance(document.getElementById('modalMaterialSuela')).hide();
+                loadModuleData('materialesSuela', currentPage.materialesSuela);
+                document.getElementById('formMaterialSuela').reset();
+                document.getElementById('titleMaterialSuela').innerText = 'Nuevo Material de Suela';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Material de Suela guardado',
+                    text: 'El material de suela se guardó correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: 'Ocurrió un problema al guardar el material de suela.',
+                });
+            });
+        }
+
+        function editarMaterialSuela(id) {
+            fetch(`/admin/catalogo/materialesSuela/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('idMaterialSuela').value = data.idMaterialSuela;
+                    document.getElementById('descripcionSuela').value = data.descripcionSuela;
+                    document.getElementById('titleMaterialSuela').innerText = 'Editar Material de Suela';
+                    new bootstrap.Modal(document.getElementById('modalMaterialSuela')).show();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function eliminarMaterialSuela(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este material de suela?')) {
+                fetch(`/admin/catalogo/materialesSuela/${id}`, { method: 'DELETE' })
+                    .then(() => loadModuleData('materialesSuela', currentPage.materialesSuela))
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // --- Estados de Producto ---
+
+        function prepararNuevoRegistroEstadoProducto() {
+            // Limpia el formulario y posibles errores previos
+            document.getElementById('formEstadoProducto').reset();
+            document.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+
+            document.getElementById('idEstadoProducto').value = '';
+            document.getElementById('afectaStock').checked = false;
+            document.getElementById('titleEstadoProducto').innerText = 'Registrar Nuevo Estado de Producto';
+            new bootstrap.Modal(document.getElementById('modalEstadoProducto')).show();
+        }
+
+        function guardarEstadoProducto() {
+            // 🔍 Validar el formulario antes de guardar
+            if (!validarFormulario('formEstadoProducto')) return;
+
+            const id = document.getElementById('idEstadoProducto').value;
+            const data = {
+                idEstadoProducto: id,
+                descripcionEstado: document.getElementById('descripcionEstado').value.trim(),
+                afectaStock: document.getElementById('afectaStock').checked
+            };
+
+            const url = id ? `/admin/catalogo/estadosProducto/${id}` : '/admin/catalogo/estadosProducto';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Cierra modal y refresca tabla
+                bootstrap.Modal.getInstance(document.getElementById('modalEstadoProducto')).hide();
+                loadModuleData('estadosProducto', currentPage.estadosProducto);
+                document.getElementById('formEstadoProducto').reset();
+                document.getElementById('titleEstadoProducto').innerText = 'Nuevo Estado de Producto';
+
+                // Notificación de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Estado de Producto guardado',
+                    text: 'El estado se guardó correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: 'Ocurrió un problema al guardar el estado del producto.',
+                });
+            });
+        }
+
+        function editarEstadoProducto(id) {
+            fetch(`/admin/catalogo/estadosProducto/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('idEstadoProducto').value = data.idEstadoProducto;
+                    document.getElementById('descripcionEstado').value = data.descripcionEstado;
+                    document.getElementById('afectaStock').checked = data.afectaStock;
+                    document.getElementById('titleEstadoProducto').innerText = 'Editar Estado de Producto';
+                    new bootstrap.Modal(document.getElementById('modalEstadoProducto')).show();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function eliminarEstadoProducto(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este estado de producto?')) {
+                fetch(`/admin/catalogo/estadosProducto/${id}`, { method: 'DELETE' })
+                    .then(() => loadModuleData('estadosProducto', currentPage.estadosProducto))
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // Cargar los datos iniciales al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            loadModuleData('marcas', currentPage.marcas);
+            loadModuleData('categorias', currentPage.categorias);
+            loadModuleData('materialesPrincipales', currentPage.materialesPrincipales);
+            loadModuleData('colores', currentPage.colores);
+            loadModuleData('tiposItem', currentPage.tiposItem);
+            loadModuleData('tallas', currentPage.tallas);
+            loadModuleData('generos', currentPage.generos);
+            loadModuleData('tiposPersona', currentPage.tiposPersona);
+            loadModuleData('materialesSuela', currentPage.materialesSuela);
+            loadModuleData('estadosProducto', currentPage.estadosProducto);
+        });
+    </script>
+</body>
+</html>

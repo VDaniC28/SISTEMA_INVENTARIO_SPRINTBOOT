@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Almacenes</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <style>
+    /* * ========================================================= 
+    * ESTILOS ORIGINALES DE LA VISTA MADRE 
+    * ========================================================= 
+    */
+    * {
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+    }
+
+    body {
+        margin: 0;
+        display: flex;
+        height: 100vh;
+        background-color: #f2f6ff;
+    }
+
+    .sidebar {
+        width: 200px;
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20px 10px;
+        border-right: 1px solid #ddd;
+    }
+
+    .sidebar h2 {
+        font-size: 1.5em;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .sidebar img {
+        width: 100%;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .logout-btn {
+        background-color: #dc3545;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .logout-btn i {
+        margin-right: 5px;
+    }
+
+    .main {
+        flex: 1;
+        padding: 40px;
+        overflow-y: auto;
+    }
+
+    .main h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+        color: #1e2a49;
+    }
+
+    /* * ========================================================= 
+    * ESTILOS ADAPTADOS DE LA VISTA DE ALMACENES 
+    * ========================================================= 
+    */
+
+    /* Variables de color de acento para la nueva sección */
+    :root {
+        --primary-color: #6d3c7c;
+        --primary-dark: #5a2f68;
+        --primary-light: #8a4f9c;
+        --purple-color: #6f42c1;
+        --purple-light: #e9ecef;
+    }
+
+    /* Nota: Se eliminó el estilo 'body' de la vista de almacenes para no anular el fondo principal. */
+
+    .main-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(109, 60, 124, 0.1);
+        border: 1px solid rgba(109, 60, 124, 0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .container-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .container-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .btn-primary-custom {
+        background: white;
+        color: var(--primary-color);
+        border: 2px solid white;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 600;
+    }
+
+    .btn-primary-custom:hover {
+        background-color: white !important; 
+        color: var(--primary-color) !important; 
+        border-color: white !important;
+        transform: none !important; 
+    }
+
+    .btn-custom {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    /* Estilos para el modal de inventario */
+    .modal-xl {
+        max-width: 1200px;
+    }
+
+    
+    .item-row.selected {
+        background-color: #e3f2fd !important;
+        border-left: 4px solid #2196f3;
+    }
+
+    .item-row.selected .fa-hand-pointer {
+        display: inline-block !important;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+
+    .table-container {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+
+    .sticky-top {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #ced4da;
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .form-label.fw-bold {
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .alert-success {
+        background-color: #d1e7dd;
+        border-color: #badbcc;
+        color: #0f5132;
+    }
+
+    .card {
+        transition: all 0.2s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .modern-table {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin: 1.5rem;
+    }
+
+    .modern-table thead {
+        background: var(--primary-color);
+    }
+
+    .modern-table thead th {
+        color: rgb(0, 0, 0); /* Ajustado de negro a blanco para mejor contraste */
+        font-weight: 600;
+        border: none;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .modern-table tbody tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .modern-table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .btn-edit {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 0.3rem 0.8rem;
+        border-radius: 5px;
+        margin-right: 0.3rem;
+        
+    }
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 0.3rem 0.8rem;
+        border-radius: 5px;
+        transition: all 0.2s ease;
+        margin-top: 0.5rem;
+    }
+    .pagination {
+        justify-content: center;
+        margin: 1.5rem 0;
+    }
+
+    .pagination .page-link {
+        color: var(--primary-color);
+        border-color: #dee2e6;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .modal-header {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .modal-title {
+        font-weight: 600;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(109, 60, 124, 0.25);
+    }
+
+    .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(109, 60, 124, 0.25);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-excel {
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    .filter-container {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #dee2e6;
+    }
+
+    .filter-main-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: nowrap;
+    }
+
+    .filter-select-wrapper {
+        flex-shrink: 0;
+    }
+
+    .filter-select {
+        width: 200px;
+        font-size: 14px;
+    }
+
+    .filter-tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        flex-grow: 1;
+        min-height: 38px;
+        align-items: center;
+        padding: 5px 10px;
+    }
+
+    /* Etiqueta de filtro interactiva */
+    .filter-tag {
+        background: white;
+        border: 2px solid var(--purple-color);
+        color: var(--purple-color);
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: fadeInScale 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .filter-tag-label {
+        font-weight: 600;
+        color: var(--purple-color);
+    }
+
+    .filter-tag-select {
+        border: none;
+        background: transparent;
+        color: var(--purple-color);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 0;
+        margin: 0;
+        width: auto;
+        min-width: 80px;
+        outline: none;
+    }
+
+    .filter-tag-select:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .filter-tag-input {
+        border: none;
+        background: transparent;
+        color: var(--purple-color);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 0;
+        margin: 0;
+        width: 80px;
+        outline: none;
+    }
+
+    .filter-tag-input:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .filter-tag-input::placeholder {
+        color: #a855f7;
+        opacity: 0.7;
+    }
+
+    .remove-filter {
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--purple-color);
+        transition: color 0.2s ease;
+        margin-left: 5px;
+    }
+
+    .remove-filter:hover {
+        color: #dc3545;
+    }
+
+    .filter-buttons-wrapper {
+        flex-shrink: 0;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-custom {
+        background-color: var(--purple-color);
+        border-color: var(--purple-color);
+        color: white;
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+
+    .btn-custom:hover {
+        background-color: #5a32a3;
+        border-color: #5a32a3;
+    }
+
+    .btn-excel {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: white;
+        font-size: 14px;
+        padding: 8px 16px;
+        text-decoration: none;
+    }
+
+    .btn-excel:hover {
+        background-color: #218838;
+        border-color: #218838;
+        color: white;
+        text-decoration: none;
+    }
+
+    @keyframes fadeInScale {
+        0% {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .filter-main-row {
+            flex-wrap: wrap;
+        }
+        
+        .filter-select {
+            width: 100%;
+        }
+        
+        .filter-tags-container {
+            width: 100%;
+            order: 3;
+            margin-top: 10px;
+        }
+        
+        .filter-buttons-wrapper {
+            margin-left: auto;
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="sidebar">
+    <div>
+        <a href="/admin/vistaAdmin">
+            <img src="/images/Logo.png" alt="Logo">
+        </a>
+        <h2>SISTEMA INVENTARIO</h2>
+    </div>  
+    <form action="/logout" method="post">
+        <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </form>
+</div>
+
+<div class="main">
+    <div class="container-fluid py-4">
+        <!-- Mensajes de éxito/error -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong th:text="${error}"></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong th:text="${success}"></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- SECCIÓN ALMACENES -->
+        <div class="main-container">
+            <div class="container-header">
+                <h2 class="container-title">
+                    <i class="fas fa-warehouse me-2"></i>
+                    Gestión de Almacenes
+                </h2>
+                <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#modalAlmacen">
+                    <i class="fas fa-plus me-2"></i>
+                    Registrar Almacén
+                </button>
+            </div>
+
+            <!-- Tabla de Almacenes -->
+            <div class="table-responsive modern-table" th:if="${almacenes.hasContent()}">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre Almacén</th>
+                            <th>Tipo</th>
+                            <th>Ubicación</th>
+                            <th>Capacidad Máxima</th> 
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="almacen : ${almacenes.content}">
+                            <td class="text-center" th:text="${almacen.idAlmacen}"></td>
+                            <td th:text="${almacen.nombreAlmacen}"></td>
+                            <td th:text="${almacen.tipoAlmacen}"></td>
+                            <td th:text="${almacen.ubicacion}"></td>
+                            <td th:text="${almacen.capacidadMaxima}"></td>
+                            <td class="text-center">
+                               <button type="button" 
+                                    class="btn btn-edit btn-sm" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalEditarAlmacen"
+                                    th:data-id="${almacen.idAlmacen}"
+                                    th:data-nombre="${almacen.nombreAlmacen}"
+                                    th:data-tipo="${almacen.tipoAlmacen}"
+                                    th:data-ubicacion="${almacen.ubicacion}"
+                                    th:data-capacidad="${almacen.capacidadMaxima}">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                                <form th:action="@{/admin/almacenes/eliminar/{id}(id=${almacen.idAlmacen})}" 
+                                      method="post" style="display: inline;" 
+                                      th:onsubmit="'return confirm(\'¿Está seguro de eliminar este almacén?\')'">
+                                    <button type="submit" class="btn btn-delete btn-sm">
+                                        <i class="fas fa-trash"></i> Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Estado vacío para almacenes -->
+            <div class="empty-state" th:unless="${almacenes.hasContent()}">
+                <i class="fas fa-warehouse"></i>
+                <h4>No hay almacenes registrados</h4>
+                <p>Comience registrando un nuevo almacén</p>
+            </div>
+
+            <!-- Paginación para Almacenes -->
+            <nav aria-label="Paginación Almacenes" th:if="${almacenes.totalPages > 1}">
+                <ul class="pagination">
+                    <li class="page-item" th:classappend="${!almacenes.hasPrevious()} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/almacenes(pageAlmacen=${almacenes.number - 1}, filtroNombre=${filtroNombre})}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    
+                    <li class="page-item" 
+                        th:each="pageNum : ${#numbers.sequence(0, almacenes.totalPages - 1)}"
+                        th:classappend="${pageNum == almacenes.number} ? 'active'">
+                        <a class="page-link" 
+                           th:href="@{/admin/almacenes(pageAlmacen=${pageNum}, filtroNombre=${filtroNombre})}" 
+                           th:text="${pageNum + 1}"></a>
+                    </li>
+                    
+                    <li class="page-item" th:classappend="${!almacenes.hasNext()} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/almacenes(pageAlmacen=${almacenes.number + 1}, filtroNombre=${filtroNombre})}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- SECCIÓN INVENTARIO ALMACÉN -->
+<div class="main-container">
+    <div class="container-header">
+        <h2 class="container-title">
+            <i class="fas fa-boxes me-2"></i>
+            Inventario de Almacenes
+        </h2>
+        <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#modalInventario">
+            <i class="fas fa-plus me-2"></i>
+            Registrar Inventario
+        </button>
+    </div>
+
+    <div class="filter-container">
+        <form th:action="@{/admin/almacenes}" method="get" id="filtroForm">
+            <input type="hidden" name="pageInventario" value="0">
+            
+            <!-- Fila principal con select, filtros aplicados y botones -->
+            <div class="filter-main-row">
+                <!-- Select de filtros (izquierda, fijo) -->
+                <div class="filter-select-wrapper">
+                    <select class="form-select filter-select" id="filtroSelect">
+                        <option value="">Seleccionar filtro</option>
+                        <option value="almacen">Almacén</option>
+                        <option value="producto">Producto</option>
+                        <option value="suministro">Suministro</option>
+                        <option value="lote">Lote</option>
+                    </select>
+                </div>
+
+                <!-- Contenedor de filtros aplicados (centro, flexible) -->
+                <div class="filter-tags-container" id="filtrosAplicadosContainer">
+                    <!-- Los filtros aplicados aparecerán aquí dinámicamente -->
+                </div>
+
+                <!-- Botones (derecha, fijos) -->
+                <div class="filter-buttons-wrapper">
+                    <button type="submit" class="btn btn-custom" id="btnFiltrar">
+                        <i class="fas fa-filter me-2"></i>
+                        Filtrar
+                    </button>
+                    <a class="btn btn-excel" th:href="@{/admin/almacenes/inventario/excel(filtroAlmacen=${filtroAlmacen}, filtroProducto=${filtroProducto}, filtroSuministro=${filtroSuministro}, filtroLote=${filtroLote})}">
+                        <i class="fas fa-file-excel me-2"></i>
+                        Excel
+                    </a>
+                </div>
+            </div>
+
+            <!-- Campos ocultos para mantener los valores de filtros -->
+            <input type="hidden" name="filtroAlmacen" id="hiddenFiltroAlmacen" th:value="${filtroAlmacen}">
+            <input type="hidden" name="filtroProducto" id="hiddenFiltroProducto" th:value="${filtroProducto}">
+            <input type="hidden" name="filtroSuministro" id="hiddenFiltroSuministro" th:value="${filtroSuministro}">
+            <input type="hidden" name="filtroLote" id="hiddenFiltroLote" th:value="${filtroLote}">
+
+            <!-- Templates ocultos para los datos de filtros -->
+            <div style="display: none;">
+                <select id="templateAlmacen">
+                    <option value="">Seleccionar</option>
+                    <option th:each="almacen : ${listaAlmacenes}" 
+                            th:value="${almacen.idAlmacen}" 
+                            th:text="${almacen.nombreAlmacen}"></option>
+                </select>
+                
+                <select id="templateProducto">
+                    <option value="">Seleccionar</option>
+                    <option th:each="producto : ${listaProductos}" 
+                            th:value="${producto.idProducto}" 
+                            th:text="${producto.nombreProducto}"></option>
+                </select>
+                
+                <select id="templateSuministro">
+                    <option value="">Seleccionar</option>
+                    <option th:each="suministro : ${listaSuministros}" 
+                            th:value="${suministro.idSuministro}" 
+                            th:text="${suministro.nombreSuministro}"></option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive modern-table" th:if="${inventarios.hasContent()}">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Almacén</th>
+                    <th>Tipo Item</th>
+                    <th>Nombre Item</th>
+                    <th>Modelo</th>
+                    <th>Lote</th>
+                    <th>Stock Total</th>
+                    <th>Stock Reservado</th>
+                    <th>Stock Disponible</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="inventario : ${inventarios.content}">
+                    <td class="text-center" th:text="${inventario.idInventario}"></td>
+                    <td th:text="${inventario.almacen.nombreAlmacen}"></td>
+                    <td th:text="${inventario.tipoItem}"></td>
+                    <td th:text="${inventario.nombreItem}"></td>
+                    <td th:text="${inventario.codigoItem}"></td>
+                    <td th:text="${inventario.lote != null ? inventario.lote : 'N/A'}"></td>
+                    <td class="text-center" th:text="${inventario.stock}"></td>
+                    <td class="text-center" th:text="${inventario.stockReservado}"></td>
+                    <td class="text-center" th:text="${inventario.stockDisponible}"></td>
+                    <td class="text-center">
+                        <button class="btn btn-edit btn-sm" th:onclick="'editarInventario(' + ${inventario.idInventario} + ')'">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <form th:action="@{/admin/almacenes/inventario/eliminar/{id}(id=${inventario.idInventario})}" 
+                            method="post" style="display: inline;" 
+                            th:onsubmit="'return confirm(\'¿Está seguro de eliminar este inventario?\')'">
+                            <button type="submit" class="btn btn-delete btn-sm">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="empty-state" th:unless="${inventarios.hasContent()}">
+        <i class="fas fa-boxes"></i>
+        <h4>No hay inventarios registrados</h4>
+        <p>Comience registrando un nuevo inventario</p>
+    </div>
+
+    <nav aria-label="Paginación Inventario" th:if="${inventarios.totalPages > 1}">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${!inventarios.hasPrevious()} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/almacenes(pageInventario=${inventarios.number - 1}, filtroAlmacen=${filtroAlmacen}, filtroProducto=${filtroProducto}, filtroSuministro=${filtroSuministro}, filtroLote=${filtroLote})}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            
+            <li class="page-item" 
+                th:each="pageNum : ${#numbers.sequence(0, inventarios.totalPages - 1)}"
+                th:classappend="${pageNum == inventarios.number} ? 'active'">
+                <a class="page-link" 
+                th:href="@{/admin/almacenes(pageInventario=${pageNum}, filtroAlmacen=${filtroAlmacen}, filtroProducto=${filtroProducto}, filtroSuministro=${filtroSuministro}, filtroLote=${filtroLote})}" 
+                th:text="${pageNum + 1}"></a>
+            </li>
+            
+            <li class="page-item" th:classappend="${!inventarios.hasNext()} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/almacenes(pageInventario=${inventarios.number + 1}, filtroAlmacen=${filtroAlmacen}, filtroProducto=${filtroProducto}, filtroSuministro=${filtroSuministro}, filtroLote=${filtroLote})}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<!-- MODAL INVENTARIO REDISEÑADO -->
+<div class="modal fade" id="modalInventario" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalInventarioTitle">
+                    <i class="fas fa-boxes me-2"></i>
+                    Registrar Inventario
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <form th:action="@{/admin/almacenes/inventario/guardar}" method="post" th:object="${inventario}" id="formInventario">
+                <div class="modal-body">
+                    <!-- Campos ocultos -->
+                    <input type="hidden" th:field="*{idInventario}" id="idInventario">
+                    <input type="hidden" th:field="*{producto.idProducto}" id="idProductoFk">
+                    <input type="hidden" th:field="*{suministro.idSuministro}" id="idSuministroFk">
+                    
+                    <!-- Información básica -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label for="almacenInventario" class="form-label fw-bold">
+                                <i class="fas fa-warehouse me-1"></i>
+                                Almacén *
+                            </label>
+                            <select class="form-select" th:field="*{almacen.idAlmacen}" id="almacenInventario" required>
+                                <option value="">Seleccione un almacén</option>
+                                <option th:each="almacen : ${listaAlmacenes}" 
+                                        th:value="${almacen.idAlmacen}" 
+                                        th:text="${almacen.nombreAlmacen}"></option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="tipoItem" class="form-label fw-bold">
+                                <i class="fas fa-tags me-1"></i>
+                                Tipo de Item *
+                            </label>
+                            <select class="form-select" id="tipoItem" name="tipoItem" required onchange="cambiarTipoItem()">
+                                <option value="">Seleccione tipo</option>
+                                <option value="PRODUCTO">Producto</option>
+                                <option value="SUMINISTRO">Suministro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="loteInventario" class="form-label fw-bold">
+                                <i class="fas fa-barcode me-1"></i>
+                                Lote
+                            </label>
+                            <input type="text" class="form-control" th:field="*{lote}" id="loteInventario" 
+                                   placeholder="Ej: LOTE-001" maxlength="50">
+                        </div>
+                    </div>
+
+                    <!-- Sección de selección de items -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0 text-primary">
+                                        <i class="fas fa-search me-2"></i>
+                                        Seleccionar Item para Inventario
+                                    </h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <!-- Instrucción inicial -->
+                                    <div id="seleccionInicial" class="text-center p-4 text-muted">
+                                        <i class="fas fa-arrow-up fa-2x mb-3"></i>
+                                        <p class="mb-0">Seleccione primero el tipo de item para ver las opciones disponibles</p>
+                                    </div>
+                                    
+                                    <!-- Tabla de productos -->
+                                    <div id="tablaProductos" class="table-container" style="display: none;">
+                                        <div class="p-3 border-bottom">
+                                            <h6 class="text-success mb-0">
+                                                <i class="fas fa-box me-2"></i>
+                                                Productos Disponibles
+                                            </h6>
+                                        </div>
+                                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                            <table class="table table-hover mb-0">
+                                                <thead class="table-light sticky-top">
+                                                    <tr>
+                                                        <th style="width: 50px;"></th>
+                                                        <th>ID</th>
+                                                        <th>Nombre</th>
+                                                        <th>Modelo</th>
+                                                        <th>Estado</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr th:each="producto : ${listaProductos}" 
+                                                        class="item-row" 
+                                                        onclick="seleccionarProductoTabla(this)"
+                                                        style="cursor: pointer;"
+                                                        th:attr="data-id=${producto.idProducto},
+                                                                data-nombre=${producto.nombreProducto},
+                                                                data-codigo=${producto.serialProducto}">
+                                                        <td class="text-center">
+                                                            <i class="fas fa-hand-pointer text-primary" style="display: none;"></i>
+                                                        </td>
+                                                        <td class="fw-bold text-primary" th:text="${producto.idProducto}"></td>
+                                                        <td th:text="${producto.nombreProducto}"></td>
+                                                        <td th:text="${producto.serialProducto != null ? producto.serialProducto : 'N/A'}"></td>
+                                                        <td>
+                                                            <span class="badge bg-success">Activo</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tabla de suministros -->
+                                    <div id="tablaSuministros" class="table-container" style="display: none;">
+                                        <div class="p-3 border-bottom">
+                                            <h6 class="text-info mb-0">
+                                                <i class="fas fa-tools me-2"></i>
+                                                Suministros Disponibles
+                                            </h6>
+                                        </div>
+                                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                            <table class="table table-hover mb-0">
+                                                <thead class="table-light sticky-top">
+                                                    <tr>
+                                                        <th style="width: 50px;"></th>
+                                                        <th>ID</th>
+                                                        <th>Nombre</th>
+                                                        <th>Código</th>
+                                                        <th>Estado</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr th:each="suministro : ${listaSuministros}" 
+                                                        class="item-row" 
+                                                        onclick="seleccionarSuministroTabla(this)"
+                                                        style="cursor: pointer;"
+                                                        th:attr="data-id=${suministro.idSuministro},
+                                                                data-nombre=${suministro.nombreSuministro},
+                                                                data-codigo=${suministro.codigoSuministro}">
+                                                        <td class="text-center">
+                                                            <i class="fas fa-hand-pointer text-info" style="display: none;"></i>
+                                                        </td>
+                                                        <td class="fw-bold text-info" th:text="${suministro.idSuministro}"></td>
+                                                        <td th:text="${suministro.nombreSuministro}"></td>
+                                                        <td th:text="${suministro.codigoSuministro != null ? suministro.codigoSuministro : 'N/A'}"></td>
+                                                        <td>
+                                                            <span class="badge bg-success">Activo</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item seleccionado -->
+                    <div id="itemSeleccionado" style="display: none;">
+                        <div class="alert alert-success border-0 shadow-sm mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-1">Item Seleccionado</h6>
+                                    <div id="itemSeleccionadoInfo" class="mb-0"></div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-success ms-auto" onclick="cambiarSeleccion()">
+                                    <i class="fas fa-edit me-1"></i>
+                                    Cambiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de stock -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="stockInventario" class="form-label fw-bold">
+                                <i class="fas fa-cubes me-1"></i>
+                                Stock Total *
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" th:field="*{stock}" 
+                                       id="stockInventario" required min="0" 
+                                       onchange="calcularStockDisponible()" 
+                                       placeholder="0">
+                                <span class="input-group-text">Docenas</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="stockReservado" class="form-label fw-bold">
+                                <i class="fas fa-lock me-1"></i>
+                                Stock Reservado
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" th:field="*{stockReservado}" 
+                                       id="stockReservado" min="0" value="0" 
+                                       onchange="calcularStockDisponible()" 
+                                       placeholder="0">
+                                <span class="input-group-text">Docenas</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="stockDisponible" class="form-label fw-bold">
+                                <i class="fas fa-check me-1"></i>
+                                Stock Disponible
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control bg-light" 
+                                       id="stockDisponible" readonly placeholder="0">
+                                <span class="input-group-text bg-light">Docenas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitInventario" disabled>
+                        <i class="fas fa-save me-2"></i>
+                        Guardar Inventario
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <!-- MODAL ALMACEN -->
+    <div class="modal fade" id="modalAlmacen" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAlmacenTitle">Registrar Almacén</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/almacenes/guardar}" method="post" th:object="${almacen}" id="formAlmacen">
+                    <div class="modal-body">
+                        <input type="hidden" th:field="*{idAlmacen}" id="idAlmacen">
+                        
+                        <div class="mb-3">
+                            <label for="nombreAlmacen" class="form-label">Nombre del Almacén *</label>
+                            <input type="text" class="form-control" th:field="*{nombreAlmacen}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="tipoAlmacen" class="form-label">Tipo de Almacén *</label>
+                            <select class="form-select" th:field="*{tipoAlmacen}" required>
+                                <option value="">Seleccione un tipo</option>
+                                <option th:each="tipo : ${tiposAlmacen}" 
+                                        th:value="${tipo}" 
+                                        th:text="${tipo}"></option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="ubicacion" class="form-label">Ubicación *</label>
+                            <input type="text" class="form-control" th:field="*{ubicacion}" required> 
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="capacidadMaxima" class="form-label">Capacidad Máxima</label>
+                            <input type="number" class="form-control" th:field="*{capacidadMaxima}" id="capacidadMaxima">
+                        </div>
+                        
+                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-custom" id="btnSubmitAlmacen">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>    
+    <!-- Scripts -->
+    <!-- Scripts (mantén el de Bootstrap igual) -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+   <script>
+        // Variables globales
+        let productoSeleccionado = null;
+        let suministroSeleccionado = null;
+        let filtrosAplicados = [];
+        
+
+        // Inicialización cuando se carga el DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Resetear formularios al cerrar modales
+            $('#modalAlmacen').on('hidden.bs.modal', function () {
+                resetearFormularioAlmacen();
+            });
+            
+            $('#modalInventario').on('hidden.bs.modal', function () {
+                resetearFormularioInventario();
+            });
+        });
+
+        // ============= FUNCIONES DE ALMACÉN =============
+
+        window.cargarDatosAlmacen = function(button) {
+            // 1. Obtener los datos del almacén desde los atributos 'data-'
+            const id = button.getAttribute('data-id');
+            const nombre = button.getAttribute('data-nombre');
+            const tipo = button.getAttribute('data-tipo'); 
+            const ubicacion = button.getAttribute('data-ubicacion');
+            const capacidad = button.getAttribute('data-capacidad'); 
+
+           // Asegúrate de que los IDs del documento son correctos:
+            const inputId = document.getElementById('editIdAlmacen'); 
+            const inputNombre = document.getElementById('editNombreAlmacen');
+            const selectTipo = document.getElementById('editTipoAlmacen'); 
+            const inputUbicacion = document.getElementById('editUbicacion');
+            const inputCapacidad = document.getElementById('editCapacidadMaxima'); 
+                    
+            // 3. Asignar los valores a los campos
+            if (inputId) inputId.value = id;
+            if (inputNombre) inputNombre.value = nombre;
+            if (inputUbicacion) inputUbicacion.value = ubicacion;
+            if (inputCapacidad) inputCapacidad.value = capacidad;
+            
+            // Asignar el valor al select de Tipo de Almacén
+            if (selectTipo) selectTipo.value = tipo;
+
+            // Opcional: Actualizar el título del modal
+            const modalTitle = document.querySelector('#modalEditarAlmacen .modal-title');
+            if (modalTitle) {
+                modalTitle.textContent = `Editar Almacén: ${nombre}`;
+            }
+        }
+        
+
+        function resetearFormularioAlmacen() {
+            document.getElementById('formAlmacen').reset();
+            document.getElementById('idAlmacen').value = '';
+            document.getElementById('modalAlmacenTitle').textContent = 'Registrar Almacén';
+            document.getElementById('btnSubmitAlmacen').textContent = 'Guardar';
+        }
+
+        // ============= FUNCIONES DE INVENTARIO =============
+
+        function editarInventario(idInventario) {
+            // Cambiar título del modal
+            document.getElementById('modalInventarioTitle').innerHTML = 
+                '<i class="fas fa-boxes me-2"></i>Editar Inventario';
+            
+            // Cambiar la acción del formulario al POST de actualizar
+            document.getElementById('formInventario').action = '/admin/almacenes/inventario/actualizar';
+
+            // 2. Hacer petición AJAX al nuevo endpoint API
+            fetch(`/admin/almacenes/inventario/api/${idInventario}`) 
+                .then(response => {
+                    if (!response.ok) {
+                        // Si la respuesta no es 200 (ej: 404, 500)
+                        throw new Error('Error al obtener los datos del inventario: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(inventario => {
+                    // Llenar campos básicos
+                    document.getElementById('idInventario').value = inventario.idInventario;
+                    document.getElementById('almacenInventario').value = inventario.almacen.idAlmacen;
+                    document.getElementById('loteInventario').value = inventario.lote || '';
+                    document.getElementById('stockInventario').value = inventario.stock;
+                    document.getElementById('stockReservado').value = inventario.stockReservado;
+                    
+                    // 3. Determinar y llenar tipo de item y preseleccionar
+                    const tipoItem = inventario.producto ? 'PRODUCTO' : 'SUMINISTRO';
+                    document.getElementById('tipoItem').value = tipoItem;
+                    
+                    // Mostrar la tabla correspondiente para edición
+                    if (tipoItem === 'PRODUCTO') {
+                        mostrarTablaProductos();
+                        // CRÍTICO: Llamar a la preselección y pasar los datos completos
+                        preseleccionarProducto(inventario.producto.idProducto, inventario.producto);
+                    } else if (tipoItem === 'SUMINISTRO') {
+                        mostrarTablaSuministros();
+                        // CRÍTICO: Llamar a la preselección y pasar los datos completos
+                        preseleccionarSuministro(inventario.suministro.idSuministro, inventario.suministro);
+                    }
+
+                    // Opcional: Esto asegura que el stock reservado se actualice visualmente
+                    calcularStockDisponible(); 
+                    
+                    // Habilitar botón de guardar (debería estar habilitado si el registro es válido)
+                    document.getElementById('btnSubmitInventario').disabled = false;
+                    
+                    // Mostrar modal
+                    new bootstrap.Modal(document.getElementById('modalInventario')).show();
+                })
+                .catch(error => {
+                    console.error('Error al obtener inventario:', error);
+                    // Mensaje de error más descriptivo
+                    alert('Error al cargar los datos del inventario para edición. Consulte la consola.'); 
+                });
+           
+        }
+
+        function cambiarTipoItem() {
+            const tipoSeleccionado = document.getElementById('tipoItem').value;
+            
+            // Ocultar todas las secciones
+            document.getElementById('seleccionInicial').style.display = 'block';
+            document.getElementById('tablaProductos').style.display = 'none';
+            document.getElementById('tablaSuministros').style.display = 'none';
+            document.getElementById('itemSeleccionado').style.display = 'none';
+            
+            // Resetear selecciones previas
+            productoSeleccionado = null;
+            suministroSeleccionado = null;
+            document.getElementById('idProductoFk').value = '';
+            document.getElementById('idSuministroFk').value = '';
+            
+            // Deshabilitar botón de guardar
+            document.getElementById('btnSubmitInventario').disabled = true;
+            
+            // Mostrar tabla correspondiente
+            if (tipoSeleccionado === 'PRODUCTO') {
+                mostrarTablaProductos();
+            } else if (tipoSeleccionado === 'SUMINISTRO') {
+                mostrarTablaSuministros();
+            }
+        }
+
+        function mostrarTablaProductos() {
+            document.getElementById('seleccionInicial').style.display = 'none';
+            document.getElementById('tablaProductos').style.display = 'block';
+            document.getElementById('tablaSuministros').style.display = 'none';
+            
+            // Limpiar selecciones previas en la tabla
+            document.querySelectorAll('#tablaProductos .item-row').forEach(row => {
+                row.classList.remove('selected');
+                row.querySelector('.fa-hand-pointer').style.display = 'none';
+            });
+        }
+
+        function mostrarTablaSuministros() {
+            document.getElementById('seleccionInicial').style.display = 'none';
+            document.getElementById('tablaProductos').style.display = 'none';
+            document.getElementById('tablaSuministros').style.display = 'block';
+            
+            // Limpiar selecciones previas en la tabla
+            document.querySelectorAll('#tablaSuministros .item-row').forEach(row => {
+                row.classList.remove('selected');
+                row.querySelector('.fa-hand-pointer').style.display = 'none';
+            });
+        }
+
+        function seleccionarProductoTabla(elemento) {
+            // Limpiar selecciones previas
+            document.querySelectorAll('#tablaProductos .item-row').forEach(row => {
+                row.classList.remove('selected');
+                row.querySelector('.fa-hand-pointer').style.display = 'none';
+            });
+            
+            // Marcar elemento seleccionado
+            elemento.classList.add('selected');
+            elemento.querySelector('.fa-hand-pointer').style.display = 'inline-block';
+            
+            // Obtener datos del producto
+            const idProducto = elemento.getAttribute('data-id');
+            const nombre = elemento.getAttribute('data-nombre');
+            const codigo = elemento.getAttribute('data-codigo');
+            
+            // Guardar selección
+            productoSeleccionado = {
+                id: idProducto,
+                nombre: nombre,
+                codigo: codigo
+            };
+            
+            // Actualizar campos ocultos
+            document.getElementById('idProductoFk').value = idProducto;
+            document.getElementById('idSuministroFk').value = '';
+            
+            // Mostrar información del item seleccionado
+            mostrarItemSeleccionado('Producto', nombre, codigo);
+            
+            // Verificar si se puede habilitar el botón de guardar
+            verificarFormularioCompleto();
+        }
+
+        function seleccionarSuministroTabla(elemento) {
+            // Limpiar selecciones previas
+            document.querySelectorAll('#tablaSuministros .item-row').forEach(row => {
+                row.classList.remove('selected');
+                row.querySelector('.fa-hand-pointer').style.display = 'none';
+            });
+            
+            // Marcar elemento seleccionado
+            elemento.classList.add('selected');
+            elemento.querySelector('.fa-hand-pointer').style.display = 'inline-block';
+            
+            // Obtener datos del suministro
+            const idSuministro = elemento.getAttribute('data-id');
+            const nombre = elemento.getAttribute('data-nombre');
+            const codigo = elemento.getAttribute('data-codigo');
+            
+            // Guardar selección
+            suministroSeleccionado = {
+                id: idSuministro,
+                nombre: nombre,
+                codigo: codigo
+            };
+            
+            // Actualizar campos ocultos
+            document.getElementById('idSuministroFk').value = idSuministro;
+            document.getElementById('idProductoFk').value = '';
+            
+            // Mostrar información del item seleccionado
+            mostrarItemSeleccionado('Suministro', nombre, codigo);
+            
+            // Verificar si se puede habilitar el botón de guardar
+            verificarFormularioCompleto();
+        }
+
+        function mostrarItemSeleccionado(tipo, nombre, codigo) {
+            const infoDiv = document.getElementById('itemSeleccionadoInfo');
+            const codigoTexto = codigo && codigo !== 'N/A' ? ` - Código: ${codigo}` : '';
+            
+            infoDiv.innerHTML = `
+                <strong>${tipo}:</strong> ${nombre}${codigoTexto}
+            `;
+            
+            document.getElementById('itemSeleccionado').style.display = 'block';
+        }
+
+        function cambiarSeleccion() {
+            // Ocultar información del item seleccionado
+            document.getElementById('itemSeleccionado').style.display = 'none';
+            
+            // Mostrar las tablas correspondientes según el tipo seleccionado
+            const tipoItem = document.getElementById('tipoItem').value;
+            if (tipoItem === 'PRODUCTO') {
+                mostrarTablaProductos();
+            } else if (tipoItem === 'SUMINISTRO') {
+                mostrarTablaSuministros();
+            }
+            
+            // Resetear selecciones
+            productoSeleccionado = null;
+            suministroSeleccionado = null;
+            document.getElementById('idProductoFk').value = '';
+            document.getElementById('idSuministroFk').value = '';
+            
+            // Deshabilitar botón de guardar
+            document.getElementById('btnSubmitInventario').disabled = true;
+        }
+
+        function preseleccionarProducto(idProducto, productoData) {
+            // 1. Llenar la variable global directamente con los datos de la API
+            productoSeleccionado = {
+                id: idProducto,
+                nombre: productoData.nombreProducto, // Usar el nombre de la propiedad del objeto JSON
+                codigo: productoData.codigoProducto 
+            };
+
+            // 2. Actualizar campos ocultos
+            document.getElementById('idProductoFk').value = idProducto;
+            document.getElementById('idSuministroFk').value = '';
+
+            // 3. Mostrar información del item seleccionado
+            mostrarItemSeleccionado('Producto', productoSeleccionado.nombre, productoSeleccionado.codigo);
+            
+            // 4. (Opcional pero recomendable) Marcar la fila visualmente
+            const filas = document.querySelectorAll('#tablaProductos .item-row');
+            filas.forEach(fila => {
+                fila.classList.remove('selected');
+                fila.querySelector('.fa-hand-pointer').style.display = 'none';
+                if (fila.getAttribute('data-id') == idProducto) {
+                    fila.classList.add('selected');
+                    fila.querySelector('.fa-hand-pointer').style.display = 'inline-block';
+                }
+            });
+
+            verificarFormularioCompleto();
+        }
+
+        function preseleccionarSuministro(idSuministro, suministroData) {
+            // 1. Llenar la variable global directamente con los datos de la API
+            suministroSeleccionado = {
+                id: idSuministro,
+                nombre: suministroData.nombreSuministro, // Usar el nombre de la propiedad del objeto JSON
+                codigo: suministroData.codigoSuministro 
+            };
+
+            // 2. Actualizar campos ocultos
+            document.getElementById('idSuministroFk').value = idSuministro;
+            document.getElementById('idProductoFk').value = '';
+
+            // 3. Mostrar información del item seleccionado
+            mostrarItemSeleccionado('Suministro', suministroSeleccionado.nombre, suministroSeleccionado.codigo);
+            
+            // 4. (Opcional pero recomendable) Marcar la fila visualmente
+            const filas = document.querySelectorAll('#tablaSuministros .item-row');
+            filas.forEach(fila => {
+                fila.classList.remove('selected');
+                fila.querySelector('.fa-hand-pointer').style.display = 'none';
+                if (fila.getAttribute('data-id') == idSuministro) {
+                    fila.classList.add('selected');
+                    fila.querySelector('.fa-hand-pointer').style.display = 'inline-block';
+                }
+            });
+
+            verificarFormularioCompleto();
+        }
+
+        function calcularStockDisponible() {
+            const stockTotal = parseInt(document.getElementById('stockInventario').value) || 0;
+            const stockReservado = parseInt(document.getElementById('stockReservado').value) || 0;
+            const stockDisponible = stockTotal - stockReservado;
+            
+            document.getElementById('stockDisponible').value = Math.max(0, stockDisponible);
+            
+            // Verificar si el formulario está completo
+            verificarFormularioCompleto();
+        }
+
+        function verificarFormularioCompleto() {
+            const almacen = document.getElementById('almacenInventario').value;
+            const tipoItem = document.getElementById('tipoItem').value;
+            const stockTotal = document.getElementById('stockInventario').value;
+            const itemSeleccionado = productoSeleccionado || suministroSeleccionado;
+            
+            const formularioCompleto = almacen && tipoItem && stockTotal && itemSeleccionado;
+            
+            document.getElementById('btnSubmitInventario').disabled = !formularioCompleto;
+        }
+
+        function resetearFormularioInventario() {
+            // Resetear formulario
+            document.getElementById('formInventario').reset();
+            
+            // Resetear campos ocultos
+            document.getElementById('idInventario').value = '';
+            document.getElementById('idProductoFk').value = '';
+            document.getElementById('idSuministroFk').value = '';
+            
+            // Resetear variables globales
+            productoSeleccionado = null;
+            suministroSeleccionado = null;
+            
+            // Resetear vista
+            document.getElementById('seleccionInicial').style.display = 'block';
+            document.getElementById('tablaProductos').style.display = 'none';
+            document.getElementById('tablaSuministros').style.display = 'none';
+            document.getElementById('itemSeleccionado').style.display = 'none';
+            
+            // Resetear título y botón
+            document.getElementById('modalInventarioTitle').innerHTML = 
+                '<i class="fas fa-boxes me-2"></i>Registrar Inventario';
+            document.getElementById('btnSubmitInventario').disabled = true;
+            
+            // Limpiar selecciones visuales
+            document.querySelectorAll('.item-row').forEach(row => {
+                row.classList.remove('selected');
+                row.querySelector('.fa-hand-pointer').style.display = 'none';
+            });
+        }
+
+       //filtros
+
+       // Manejar cambio en el select principal
+        document.getElementById('filtroSelect').addEventListener('change', function() {
+            const tipoFiltro = this.value;
+            
+            if (tipoFiltro) {
+                // Verificar si el filtro ya existe
+                const filtroExistente = filtrosAplicados.find(f => f.tipo === tipoFiltro);
+                if (filtroExistente) {
+                    alert('Ya existe un filtro de este tipo.');
+                    this.value = '';
+                    return;
+                }
+                
+                // Crear el filtro inmediatamente
+                crearFiltroTag(tipoFiltro);
+                
+                // Limpiar el select
+                this.value = '';
+            }
+        });
+
+        function crearFiltroTag(tipo) {
+            const container = document.getElementById('filtrosAplicadosContainer');
+            const tag = document.createElement('div');
+            tag.className = 'filter-tag';
+            tag.setAttribute('data-tipo', tipo);
+            
+            let contenidoTag = '';
+            
+            if (tipo === 'lote') {
+                // Para lote es un input de texto
+                contenidoTag = `
+                    <span class="filter-tag-label">${tipo.charAt(0).toUpperCase() + tipo.slice(1)}:</span>
+                    <input type="text" class="filter-tag-input" placeholder="Escribir..." 
+                        onchange="actualizarFiltroLote(this, '${tipo}')" 
+                        onkeyup="actualizarFiltroLote(this, '${tipo}')">
+                    <span class="remove-filter" onclick="eliminarFiltro('${tipo}')">
+                        <i class="fas fa-times"></i>
+                    </span>
+                `;
+            } else {
+                // Para otros tipos es un select
+                const templateId = `template${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
+                const templateSelect = document.getElementById(templateId);
+                
+                contenidoTag = `
+                    <span class="filter-tag-label">${tipo.charAt(0).toUpperCase() + tipo.slice(1)}:</span>
+                    <select class="filter-tag-select" onchange="actualizarFiltroSelect(this, '${tipo}')">
+                        ${templateSelect.innerHTML}
+                    </select>
+                    <span class="remove-filter" onclick="eliminarFiltro('${tipo}')">
+                        <i class="fas fa-times"></i>
+                    </span>
+                `;
+            }
+            
+            tag.innerHTML = contenidoTag;
+            container.appendChild(tag);
+            
+            // Agregar a la lista de filtros aplicados (sin valor inicialmente)
+            filtrosAplicados.push({
+                tipo: tipo,
+                valor: '',
+                texto: ''
+            });
+        }
+
+        function actualizarFiltroSelect(select, tipo) {
+            const valor = select.value;
+            const texto = select.options[select.selectedIndex].text;
+            
+            // Actualizar en la lista de filtros aplicados
+            const filtro = filtrosAplicados.find(f => f.tipo === tipo);
+            if (filtro) {
+                filtro.valor = valor;
+                filtro.texto = texto;
+            }
+            
+            actualizarCamposOcultos();
+        }
+
+        function actualizarFiltroLote(input, tipo) {
+            const valor = input.value;
+            
+            // Actualizar en la lista de filtros aplicados
+            const filtro = filtrosAplicados.find(f => f.tipo === tipo);
+            if (filtro) {
+                filtro.valor = valor;
+                filtro.texto = valor;
+            }
+            
+            actualizarCamposOcultos();
+        }
+
+        function eliminarFiltro(tipo) {
+            // Eliminar de la lista
+            filtrosAplicados = filtrosAplicados.filter(f => f.tipo !== tipo);
+            
+            // Eliminar visualmente
+            const tag = document.querySelector(`.filter-tag[data-tipo="${tipo}"]`);
+            if (tag) {
+                tag.remove();
+            }
+            
+            actualizarCamposOcultos();
+        }
+
+        function actualizarCamposOcultos() {
+            // Limpiar todos los campos ocultos
+            document.getElementById('hiddenFiltroAlmacen').value = '';
+            document.getElementById('hiddenFiltroProducto').value = '';
+            document.getElementById('hiddenFiltroSuministro').value = '';
+            document.getElementById('hiddenFiltroLote').value = '';
+            
+            // Actualizar según los filtros aplicados
+            filtrosAplicados.forEach(filtro => {
+                const campo = document.getElementById(`hiddenFiltro${filtro.tipo.charAt(0).toUpperCase() + filtro.tipo.slice(1)}`);
+                if (campo && filtro.valor) {
+                    campo.value = filtro.valor;
+                }
+            });
+        }
+
+        // Inicializar filtros existentes al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si hay filtros aplicados desde el servidor
+            const filtroAlmacen = document.getElementById('hiddenFiltroAlmacen').value;
+            const filtroProducto = document.getElementById('hiddenFiltroProducto').value;
+            const filtroSuministro = document.getElementById('hiddenFiltroSuministro').value;
+            const filtroLote = document.getElementById('hiddenFiltroLote').value;
+            
+            // Recrear filtros aplicados
+            if (filtroAlmacen) {
+                crearFiltroTag('almacen');
+                setTimeout(() => {
+                    const select = document.querySelector('.filter-tag[data-tipo="almacen"] .filter-tag-select');
+                    if (select) {
+                        select.value = filtroAlmacen;
+                        actualizarFiltroSelect(select, 'almacen');
+                    }
+                }, 100);
+            }
+            
+            if (filtroProducto) {
+                crearFiltroTag('producto');
+                setTimeout(() => {
+                    const select = document.querySelector('.filter-tag[data-tipo="producto"] .filter-tag-select');
+                    if (select) {
+                        select.value = filtroProducto;
+                        actualizarFiltroSelect(select, 'producto');
+                    }
+                }, 100);
+            }
+            
+            if (filtroSuministro) {
+                crearFiltroTag('suministro');
+                setTimeout(() => {
+                    const select = document.querySelector('.filter-tag[data-tipo="suministro"] .filter-tag-select');
+                    if (select) {
+                        select.value = filtroSuministro;
+                        actualizarFiltroSelect(select, 'suministro');
+                    }
+                }, 100);
+            }
+            
+            if (filtroLote) {
+                crearFiltroTag('lote');
+                setTimeout(() => {
+                    const input = document.querySelector('.filter-tag[data-tipo="lote"] .filter-tag-input');
+                    if (input) {
+                        input.value = filtroLote;
+                        actualizarFiltroLote(input, 'lote');
+                    }
+                }, 100);
+            }
+        });
+</script>
+
+</body>
+</html>

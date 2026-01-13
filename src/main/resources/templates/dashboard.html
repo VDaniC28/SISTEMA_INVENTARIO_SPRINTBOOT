@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right, #f5f7fa, #c3cfe2);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logout-btn {
+            background-color: #ff4757;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .logout-btn:hover {
+            background-color: #ff3838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Bienvenido al Dashboard!</h1>
+            <p>Has iniciado sesión exitosamente</p>
+        </div>
+        
+        <div>
+            <p>Esta es tu página principal después del login.</p>
+            <p>Aquí puedes agregar el contenido específico de tu aplicación.</p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+        </div>
+    </div>
+</body>
+</html>

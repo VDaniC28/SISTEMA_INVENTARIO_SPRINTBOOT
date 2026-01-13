@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Inventario</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+    /* -----------------------------------------------------------------
+     * ESTILOS BASE DE LA VISTA MADRE (LAYOUT)
+     * -----------------------------------------------------------------
+     */
+    * {
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif; /* Fuente de la Madre */
+    }
+
+    body {
+        margin: 0;
+        display: flex;
+        height: 100vh;
+        background-color: #f2f6ff; /* Fondo de la Madre */
+    }
+
+    .sidebar {
+        width: 200px;
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20px 10px;
+        border-right: 1px solid #ddd;
+    }
+
+    .sidebar h2 {
+        font-size: 1.5em;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .sidebar img {
+        width: 100%;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .logout-btn {
+        background-color: #dc3545;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .logout-btn i {
+        margin-right: 5px;
+    }
+
+    .main {
+        flex: 1;
+        padding: 40px; /* Padding del contenido principal */
+        overflow-y: auto;
+    }
+
+    /* -----------------------------------------------------------------
+     * ESTILOS DEL DASHBOARD (VISTA HIJA) - ADAPTADOS
+     * (Se omitió el 'body' y '.dashboard-container' para evitar conflictos)
+     * -----------------------------------------------------------------
+     */
+    :root {
+        --primary-color: #2563eb;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --info-color: #06b6d4;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        /* * Nota: Si quieres usar la fuente 'Segoe UI' del dashboard, 
+         * puedes modificar el font-family en el * selector de la vista madre
+         */
+    }
+
+    .kpi-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .kpi-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+
+    .kpi-value {
+        font-size: 28px;
+        font-weight: bold;
+        margin: 10px 0 5px 0;
+    }
+
+    .kpi-label {
+        color: #6b7280;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .kpi-change {
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 8px;
+    }
+
+    .kpi-change.positive {
+        color: var(--success-color);
+    }
+
+    .kpi-change.negative {
+        color: var(--danger-color);
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 20px;
+        height: 100%;
+    }
+
+    .chart-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 350px;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #6b7280;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    /* Colores específicos para KPIs */
+    .bg-primary-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .bg-success-gradient {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .bg-warning-gradient {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .bg-danger-gradient {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .bg-info-gradient {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    }
+</style>
+</head>
+<body>
+<div class="sidebar">
+    <div>
+        <a href="/admin/vistaAdmin">
+            <img src="/images/Logo.png" alt="Logo">
+        </a>
+        <h2>SISTEMA INVENTARIO</h2>
+    </div>  
+    <form action="/logout" method="post">
+        <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </form>
+</div>
+
+<div class="main">
+    <div class="dashboard-container">
+        <!-- Encabezado -->
+        <div class="mb-4">
+            <h2 class="fw-bold"><i class="fas fa-chart-line me-2"></i>Dashboard de Reportes</h2>
+            <p class="text-muted">Sistema de Inventario - Fabricación de Calzado</p>
+        </div>
+
+        <!-- KPIs Cards (5 Cards Horizontales) -->
+        <div class="row mb-4" id="kpisContainer">
+            <div class="col-12">
+                <div class="loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-3">Cargando indicadores...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficas en Grid 2x2 -->
+        <div class="row">
+            <!-- Fila 1 -->
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="chart-card">
+                    <h5 class="chart-title"><i class="fas fa-chart-area me-2 text-primary"></i>Evolución de Ventas Mensuales</h5>
+                    <div class="chart-container">
+                        <canvas id="ventasMensualesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="chart-card">
+                    <h5 class="chart-title"><i class="fas fa-crown me-2 text-warning"></i>Top 10 Productos Más Vendidos</h5>
+                    <div class="chart-container">
+                        <canvas id="topProductosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 2 -->
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="chart-card">
+                    <h5 class="chart-title"><i class="fas fa-chart-pie me-2 text-success"></i>Ventas por Categoría</h5>
+                    <div class="chart-container">
+                        <canvas id="ventasCategoriaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="chart-card">
+                    <h5 class="chart-title"><i class="fas fa-sync-alt me-2 text-info"></i>Rotación de Inventario</h5>
+                    <div class="chart-container">
+                        <canvas id="rotacionInventarioChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 3 -->
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="chart-card">
+                    <h5 class="chart-title"><i class="fas fa-box-open me-2 text-danger"></i>Productos con Exceso de Stock</h5>
+                    <div class="chart-container">
+                        <canvas id="excesoStockChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="chart-card">
+                    <h5 class="chart-title"><i class="fas fa-truck me-2 text-primary"></i>Top 5 Proveedores</h5>
+                    <div class="chart-container">
+                        <canvas id="topProveedoresChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 4 -->
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="chart-card">
+                    <h5 class="chart-title"><i class="fas fa-shopping-cart me-2 text-success"></i>Evolución de Compras Mensuales</h5>
+                    <div class="chart-container">
+                        <canvas id="comprasMensualesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="chart-card">
+                    <h5 class="chart-title"><i class="fas fa-users me-2 text-warning"></i>Clasificación de Clientes</h5>
+                    <div class="chart-container">
+                        <canvas id="clasificacionClientesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 5 -->
+            <div class="col-lg-12 mb-4">
+                <div class="chart-card">
+                    <h5 class="chart-title"><i class="fas fa-user-plus me-2 text-info"></i>Nuevos Clientes por Mes</h5>
+                    <div class="chart-container">
+                        <canvas id="nuevosClientesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script Principal -->
+    <script th:inline="javascript">
+        // =====================================================
+        // UTILIDADES
+        // =====================================================
+
+        // Función para dar formato a números (ej: 12345.67 -> 12,345.67)
+        function formatearNumero(num) {
+            return new Intl.NumberFormat('es-PE', { 
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }).format(num);
+        }
+
+        // Función para mostrar un mensaje de error si falla la carga de la API
+        function mostrarError(message = 'Error desconocido al cargar los datos del Dashboard.') {
+            const container = document.getElementById('kpisContainer');
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-danger text-center shadow-sm" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i> ${message}
+                    </div>
+                </div>
+            `;
+        }
+
+
+        // =====================================================
+        // CONFIGURACIÓN GLOBAL DE CHART.JS
+        // =====================================================
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.color = '#6b7280';
+
+        // =====================================================
+        // FUNCIÓN PRINCIPAL: CARGAR DASHBOARD (USANDO ENDPOINT REAL)
+        // =====================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarDashboardCompleto();
+        });
+
+        async function cargarDashboardCompleto() {
+            try {
+                // ** ESTA ES LA LÍNEA CORREGIDA **
+                // Se eliminó la barra inicial para que se interprete como ruta relativa.
+                const response = await fetch('/admin/reportes/api/dashboard-completo');
+//                      ^--- La barra inicial es crucial.
+                if (!response.ok) {
+                    throw new Error(`Error en la respuesta del servidor: HTTP status ${response.status}`);
+                }
+                
+                const data = await response.json(); 
+
+                // Renderizar KPIs
+                renderizarKPIs(data.kpis);
+
+                // Renderizar Gráficas
+                renderizarVentasMensuales(data.ventasMensuales);
+                renderizarTopProductos(data.topProductos);
+                renderizarVentasPorCategoria(data.ventasPorCategoria);
+                renderizarRotacionInventario(data.rotacionInventario);
+                renderizarExcesoStock(data.excesoStock);
+                renderizarTopProveedores(data.topProveedores);
+                renderizarComprasMensuales(data.comprasMensuales);
+                renderizarClasificacionClientes(data.clasificacionClientes);
+                renderizarNuevosClientes(data.nuevosClientes);
+
+            } catch (error) {
+                console.error('Error al cargar el dashboard:', error);
+                // Mostrar un mensaje de error detallado al usuario
+                mostrarError(`No se pudo obtener la información. ${error.message}`);
+            }
+        }
+
+        // =====================================================
+        // RENDERIZAR KPIs
+        // =====================================================
+        function renderizarKPIs(kpis) {
+            const container = document.getElementById('kpisContainer');
+            
+            // Usar valores predeterminados si la API falla o devuelve nulos
+            const ventasMes = kpis.ventasMes || 0;
+            const porcentajeCrecimiento = kpis.porcentajeCrecimiento || 0;
+            const productosStock = kpis.productosStock || 0;
+            const ordenesPendientes = kpis.ordenesPendientes || 0;
+            const clientesActivos = kpis.clientesActivos || 0;
+            const tasaCumplimiento = kpis.tasaCumplimiento || 0;
+
+
+            // Lógica para el KPI de Ventas del Mes
+            const cambioIcono = porcentajeCrecimiento >= 0 
+                ? '<i class="fas fa-arrow-up"></i>' 
+                : '<i class="fas fa-arrow-down"></i>';
+            
+            const cambioClase = porcentajeCrecimiento >= 0 ? 'positive' : 'negative';
+
+            // El row debe ser un div con la clase row, no el container principal
+            container.innerHTML = `
+                <div class="row">
+                    <div class="col-lg col-md-6 mb-3">
+                        <div class="kpi-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="kpi-label">Ventas del Mes</div>
+                                    <div class="kpi-value">S/ ${formatearNumero(ventasMes)}</div>
+                                    <div class="kpi-change ${cambioClase}">
+                                        ${cambioIcono} ${Math.abs(porcentajeCrecimiento).toFixed(2)}% vs Mes Ant.
+                                    </div>
+                                </div>
+                                <div class="kpi-icon bg-primary-gradient">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg col-md-6 mb-3">
+                        <div class="kpi-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="kpi-label">Productos en Stock</div>
+                                    <div class="kpi-value">${formatearNumero(productosStock)}</div>
+                                    <div class="kpi-change" style="color: #6b7280;">
+                                        <i class="fas fa-box"></i> Unidades Totales
+                                    </div>
+                                </div>
+                                <div class="kpi-icon bg-success-gradient">
+                                    <i class="fas fa-boxes"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg col-md-6 mb-3">
+                        <div class="kpi-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="kpi-label">Órdenes Pendientes</div>
+                                    <div class="kpi-value">${ordenesPendientes}</div>
+                                    <div class="kpi-change" style="color: #6b7280;">
+                                        <i class="fas fa-clock"></i> Pedidos en proceso
+                                    </div>
+                                </div>
+                                <div class="kpi-icon bg-warning-gradient">
+                                    <i class="fas fa-file-invoice"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg col-md-6 mb-3">
+                        <div class="kpi-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="kpi-label">Clientes Activos</div>
+                                    <div class="kpi-value">${clientesActivos}</div>
+                                    <div class="kpi-change" style="color: #6b7280;">
+                                        <i class="fas fa-calendar-check"></i> Compraron este mes
+                                    </div>
+                                </div>
+                                <div class="kpi-icon bg-info-gradient">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg col-md-6 mb-3">
+                        <div class="kpi-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="kpi-label">Cumplimiento</div>
+                                    <div class="kpi-value">${tasaCumplimiento.toFixed(1)}%</div>
+                                    <div class="kpi-change" style="color: #6b7280;">
+                                        <i class="fas fa-check-circle"></i> Entregas a tiempo
+                                    </div>
+                                </div>
+                                <div class="kpi-icon bg-danger-gradient">
+                                    <i class="fas fa-truck-fast"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // =====================================================
+        // 1. GRÁFICA: EVOLUCIÓN DE VENTAS MENSUALES (Línea)
+        // =====================================================
+        function renderizarVentasMensuales(datos) {
+            const ctx = document.getElementById('ventasMensualesChart').getContext('2d');
+            
+            const meses = datos.map(d => d.mes);
+            const ventasActuales = datos.map(d => d.ventasAnioActual);
+            const ventasAnteriores = datos.map(d => d.ventasAnioAnterior);
+            const anioActual = datos[0]?.anioActual || new Date().getFullYear();
+            const anioAnterior = datos[0]?.anioAnterior || anioActual - 1;
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: meses,
+                    datasets: [
+                        {
+                            label: `Año ${anioActual}`,
+                            data: ventasActuales,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3
+                        },
+                        {
+                            label: `Año ${anioAnterior}`,
+                            data: ventasAnteriores,
+                            borderColor: '#94a3b8',
+                            backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': S/ ' + formatearNumero(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'S/ ' + formatearNumero(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // =====================================================
+        // 2. GRÁFICA: TOP 10 PRODUCTOS MÁS VENDIDOS (Barra Horizontal)
+        // =====================================================
+        function renderizarTopProductos(datos) {
+            const ctx = document.getElementById('topProductosChart').getContext('2d');
+            
+            const productos = datos.map(d => d.nombreProducto);
+            const cantidades = datos.map(d => d.cantidadVendida);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: productos,
+                    datasets: [{
+                        label: 'Cantidad Vendida',
+                        data: cantidades,
+                        backgroundColor: [
+                            '#2563eb', '#7c3aed', '#db2777', '#dc2626', '#ea580c',
+                            '#ca8a04', '#16a34a', '#059669', '#0891b2', '#0284c7'
+                        ],
+                        borderRadius: 8,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Hace la barra horizontal
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // =====================================================
+        // 3. GRÁFICA: VENTAS POR CATEGORÍA (Dona)
+        // =====================================================
+        function renderizarVentasPorCategoria(datos) {
+            const ctx = document.getElementById('ventasCategoriaChart').getContext('2d');
+            
+            const categorias = datos.map(d => d.categoria);
+            const montos = datos.map(d => d.montoTotal);
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categorias,
+                    datasets: [{
+                        data: montos,
+                        backgroundColor: [
+                            '#2563eb', '#7c3aed', '#db2777', '#dc2626', 
+                            '#ea580c', '#ca8a04', '#16a34a', '#059669'
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const dato = datos[context.dataIndex];
+                                    return context.label + ': S/ ' + formatearNumero(context.parsed) + 
+                                        ' (' + dato.porcentaje.toFixed(1) + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // =====================================================
+        // 4. GRÁFICA: ROTACIÓN DE INVENTARIO (Radar)
+        // =====================================================
+        function renderizarRotacionInventario(datos) {
+            const ctx = document.getElementById('rotacionInventarioChart').getContext('2d');
+            
+            const categorias = datos.map(d => d.categoria);
+            const dias = datos.map(d => d.indiceRotacion);
+
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: categorias,
+                    datasets: [{
+                        label: 'Días de Inventario',
+                        data: dias,
+                        backgroundColor: 'rgba(6, 182, 212, 0.2)', // info-color
+                        borderColor: 'rgba(6, 182, 212, 1)',
+                        pointBackgroundColor: 'rgba(6, 182, 212, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(6, 182, 212, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: '#e5e7eb' // Gris claro
+                            },
+                            grid: {
+                                color: '#e5e7eb'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 14
+                                }
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 150, 
+                            ticks: {
+                                backdropColor: 'rgba(248, 249, 250, 0.7)',
+                                callback: function(value) {
+                                    return value + ' Días';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+        
+        // =====================================================
+        // 5. GRÁFICA: PRODUCTOS CON EXCESO DE STOCK (Polar Area)
+        // =====================================================
+        function renderizarExcesoStock(datos) {
+            const ctx = document.getElementById('excesoStockChart').getContext('2d');
+
+            const productos = datos.map(d => d.nombreProducto);
+            const stock = datos.map(d => d.exceso);
+            
+            new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: productos,
+                    datasets: [{
+                        data: stock,
+                        backgroundColor: [
+                            '#ef4444', // danger-color
+                            '#f97316', 
+                            '#facc15', 
+                            '#4ade80'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + formatearNumero(context.parsed) + ' Unidades';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            grid: {
+                                color: '#e5e7eb'
+                            },
+                            suggestedMin: 0,
+                            ticks: {
+                                backdropColor: 'rgba(248, 249, 250, 0.7)',
+                                callback: function(value) {
+                                    return formatearNumero(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // =====================================================
+        // 6. GRÁFICA: TOP 5 PROVEEDORES (Barra Vertical)
+        // =====================================================
+        function renderizarTopProveedores(datos) {
+            const ctx = document.getElementById('topProveedoresChart').getContext('2d');
+            
+            const proveedores = datos.map(d => d.nombreProveedor);
+            const montos = datos.map(d => d.montoTotal);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: proveedores,
+                    datasets: [{
+                        label: 'Monto de Compra (S/)',
+                        data: montos,
+                        backgroundColor: '#2563eb', // primary-color
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': S/ ' + formatearNumero(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'S/ ' + formatearNumero(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // =====================================================
+        // 7. GRÁFICA: EVOLUCIÓN DE COMPRAS MENSUALES (Línea)
+        // =====================================================
+        function renderizarComprasMensuales(datos) {
+            const ctx = document.getElementById('comprasMensualesChart').getContext('2d');
+            
+            const meses = datos.map(d => d.mes);
+            const compras = datos.map(d => d.montoTotal);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: meses,
+                    datasets: [{
+                        label: 'Monto Comprado (S/)',
+                        data: compras,
+                        borderColor: '#10b981', // success-color
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': S/ ' + formatearNumero(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'S/ ' + formatearNumero(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // =====================================================
+        // 8. GRÁFICA: CLASIFICACIÓN DE CLIENTES (Dona)
+        // =====================================================
+        function renderizarClasificacionClientes(datos) {
+            const ctx = document.getElementById('clasificacionClientesChart').getContext('2d');
+            
+            // CORRECCIÓN CLAVE: Cambiar 'segmento' por 'estadoValor'
+            const segmentos = datos.map(d => d.clasificacion); 
+            const cantidades = datos.map(d => d.cantidadClientes);
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: segmentos,
+                    datasets: [{
+                        data: cantidades,
+                        backgroundColor: [
+                            '#f59e0b', // warning-color (Leales)
+                            '#06b6d4', // info-color (Potenciales)
+                            '#ef4444', // danger-color (En Riesgo)
+                            '#10b981', // success-color (Nuevos)
+                            '#6b7280'  // Gray (Inactivos)
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const dato = datos[context.dataIndex];
+                                    // 1. Asegura que el porcentaje sea un número (0 si es null/undefined)
+                                    const porcentaje = dato.porcentaje && !isNaN(dato.porcentaje) ? dato.porcentaje : 0;
+                                    
+                                    // 2. Crea el texto del porcentaje de forma segura
+                                    const porcentajeTexto = porcentaje > 0 ? ` (${porcentaje.toFixed(1)}%)` : '';
+                                    
+                                    // 3. Verifica que el formatearNumero no esté fallando
+                                    // Si formatearNumero está mal definido o falla, también devolverá undefined.
+                                    // Usar la función de JS toLocaleString para probar.
+                                    const cantidadFormateada = formatearNumero(context.parsed); 
+                                    
+                                    return context.label + ': ' + cantidadFormateada + ' Clientes' + porcentajeTexto;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // =====================================================
+        // 9. GRÁFICA: NUEVOS CLIENTES POR MES (Barra)
+        // =====================================================
+        function renderizarNuevosClientes(datos) {
+            const ctx = document.getElementById('nuevosClientesChart').getContext('2d');
+            
+            const meses = datos.map(d => d.mes);
+            const nuevos = datos.map(d => d.cantidadNuevos);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: meses,
+                    datasets: [{
+                        label: 'Nuevos Clientes',
+                        data: nuevos,
+                        backgroundColor: '#06b6d4', // info-color
+                        borderColor: '#0891b2',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Clientes'
+                            },
+                            ticks: {
+                                stepSize: 10 
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>

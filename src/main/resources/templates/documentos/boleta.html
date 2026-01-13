@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{documentos/document_base_layout :: layout(~{::content})}">
+<body>
+
+<div th:fragment="content">
+    
+    <div class="document-title" style="width: 30%; float: right; margin-top: -30px;">
+        BOLETA DE VENTA<br/>
+        N° <span th:text="${salida.numeroSalida}"></span>
+    </div>
+
+    <table class="client-info">
+        <tr>
+            <td style="width: 20%;"><strong>Cliente:</strong></td>
+            <td th:text="${salida.nombreCliente != null ? salida.nombreCliente : 'Consumidor Final'}"></td>
+        </tr>
+        <tr>
+            <td><strong>DNI/Doc:</strong></td>
+            <td th:text="${salida.numeroDocumentoCliente != null ? salida.numeroDocumentoCliente : 'N/A'}"></td>
+        </tr>
+        <tr>
+            <td><strong>Fecha de Emisión:</strong></td>
+            <td th:text="${#temporals.format(salida.fechaSalida, 'dd/MM/yyyy')}"></td>
+        </tr>
+    </table>
+
+    <table class="detail-table">
+        <thead>
+            <tr>
+                <th style="width: 10%;">CANT.</th>
+                <th style="width: 15%;">CÓDIGO</th>
+                <th style="width: 40%;">DESCRIPCIÓN</th>
+                <th style="width: 10%;">LOTE</th>
+                <th style="width: 10%;">P. UNIT.</th>
+                <th style="width: 15%;">TOTAL</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="detalle : ${salida.detalles}">
+                <td style="text-align: center;" th:text="${#numbers.formatDecimal(detalle.cantidad, 0, 0)}"></td>
+                <td th:text="${detalle.idProducto != null ? detalle.idProducto : detalle.idSuministro}"></td>
+                <td th:text="${detalle.nombreItem}"></td>
+                <td th:text="${detalle.lote}"></td>
+                <td style="text-align: right;" th:text="${#numbers.formatDecimal(detalle.precioUnitario, 1, 2)}"></td>
+                <td style="text-align: right;" th:text="${#numbers.formatDecimal(detalle.subtotalLinea, 1, 2)}"></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <table class="totals-box">
+        <tr>
+            <td style="text-align: right;">SUBTOTAL:</td>
+            <td style="text-align: right;" th:text="${#numbers.formatDecimal(salida.subtotal, 1, 2)}"></td>
+        </tr>
+        <tr>
+            <td style="text-align: right;">DESCUENTOS:</td>
+            <td style="text-align: right;" th:text="${#numbers.formatDecimal(salida.descuentos, 1, 2)}"></td>
+        </tr>
+        <tr>
+            <td style="text-align: right;">IMPUESTOS:</td>
+            <td style="text-align: right;" th:text="${#numbers.formatDecimal(salida.impuestos, 1, 2)}"></td>
+        </tr>
+        <tr style="font-weight: bold;">
+            <td style="text-align: right;">TOTAL A PAGAR:</td>
+            <td style="text-align: right;" th:text="${#numbers.formatDecimal(salida.montoTotal, 1, 2)}"></td>
+        </tr>
+    </table>
+
+    <div class="clear"></div>
+
+</div>
+
+</body>
+</html>

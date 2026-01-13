@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Suministros - Calzados D'JHONEY</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.0/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --orange-color: #6d3c7c;
+            --orange-hover: #e55a00;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-radius: 15px;
+            --white-color: #ffffff;
+            --bg-color: #f2f6ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-color);
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: var(--white-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 10px;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .sidebar img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logout-btn i {
+            margin-right: 5px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto; /* Permite scroll si el contenido es muy largo */
+        }
+        
+        .main h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #1e2a49;
+        }
+
+        /* VISTA SUMINISTRO STYLES */
+
+        .main-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 25px var(--shadow-color);
+            padding: 30px;
+            margin: 0 auto;
+            max-width: 1600px;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+
+        .btn-orange {
+            background-color: var(--orange-color);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-orange:hover {
+            background-color: var(--orange-hover);
+        }
+
+        .filter-section {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: nowrap;
+        }
+
+        .filter-select {
+            min-width: 200px;
+            flex-shrink: 0;
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            flex: 1;
+        }
+
+        .filter-tag {
+            background-color: white;
+            border: 2px solid var(--orange-color);
+            border-radius: 20px;
+            padding: 2px 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-tag-label {
+            font-weight: 600;
+            color: var(--orange-color);
+            font-size: 0.7rem;
+        }
+
+        .filter-tag select {
+            border: none;
+            background: none;
+            color: #333;
+            font-size: 0.7rem;
+            min-width: 120px;
+        }
+
+        .filter-tag select:focus {
+            outline: none;
+        }
+
+        .remove-filter {
+            background: var(--orange-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .filter-button {
+            flex-shrink: 0;
+            min-width: 120px;
+        }
+        
+        .suministros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px; /* Espacio entre tarjetas */
+            margin-top: 20px;
+        }
+
+        .suministro-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            padding: 15px; /* Reducir el padding para compactar la tarjeta */
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid #f1f3f4;
+        }
+
+        .suministro-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-color: var(--orange-color);
+        }
+
+        .suministro-image {
+            width: 100%;
+            height: 140px; /* Reducir la altura de la imagen */
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px; /* Reducir el margen inferior */
+            overflow: hidden;
+        }
+
+        .suministro-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .suministro-image i {
+            font-size: 2.5rem; /* Reducir el tamaño del icono */
+            color: #ccc;
+        }
+
+        .suministro-name {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 6px; /* Reducir el margen inferior */
+            font-size: 1rem; /* Ajustar el tamaño de la fuente */
+            line-height: 1.2; /* Ajustar el interlineado */
+        }
+
+        .suministro-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px; /* Reducir el margen superior */
+        }
+
+        .suministro-stock {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px; /* Ajustar el padding */
+            border-radius: 15px;
+            font-size: 0.8rem; /* Ajustar el tamaño de la fuente */
+            font-weight: 600;
+        }
+
+        .suministro-price {
+            font-weight: 700;
+            color: var(--orange-color);
+            font-size: 1rem; /* Ajustar el tamaño de la fuente */
+        }
+
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .no-results i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner-border {
+            color: var(--orange-color);
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background-color: var(--orange-color);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 20px 30px;
+        }
+
+        .modal-title {
+            font-weight: 700;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .detail-value {
+            color: #333;
+            text-align: right;
+        }
+
+        .btn-close-white {
+            filter: brightness(0) invert(1);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .form-select, .form-control {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 10px;
+                padding: 20px;
+            }
+
+            .header-section {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-select {
+                min-width: unset;
+            }
+
+            .suministros-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+    <div>
+        <a href="/admin/vistaAdmin">
+            <img src="/images/Logo.png" alt="Logo">
+        </a>
+        <h2>SISTEMA INVENTARIO</h2>
+    </div>  
+    <form action="/logout" method="post">
+        <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </form>
+</div>
+
+<div class="main">
+    <div class="container-fluid">
+        <div class="main-container">
+            <!-- Header Section -->
+            <div class="header-section">
+                <h1 class="page-title">Gestión de Suministros</h1>
+                <div class="d-flex gap-3">
+                    <button type="button" class="btn-orange" onclick="descargarExcel()">
+                        <i class="bi bi-file-earmark-excel"></i>
+                        Excel
+                    </button>
+                    <button type="button" class="btn-orange" data-bs-toggle="modal" data-bs-target="#nuevoSuministroModal">
+                        <i class="bi bi-plus-circle"></i>
+                        Registrar Suministro
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-select">
+                        <select id="filterSelect" class="form-select">
+                            <option value="">Seleccionar filtro...</option>
+                            <option value="fechaRegistro">Fecha de Registro</option>
+                            <option value="tipoItem">Tipo de Item</option>
+                            <option value="proveedor">Proveedor</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-tags" id="filterTags">
+                        <!-- Los filtros activos se mostrarán aquí -->
+                    </div>
+                    
+                    <button type="button" class="btn-orange filter-button" onclick="aplicarFiltros()">
+                        <i class="bi bi-funnel"></i>
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-3">Cargando suministros...</p>
+            </div>
+
+            <!-- Results Info -->
+            <div id="resultsInfo" class="d-flex justify-content-between align-items-center mb-3" style="display: none !important;">
+                <span id="resultsCount" class="text-muted"></span>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="limpiarFiltros()">
+                    <i class="bi bi-x-circle"></i>
+                    Limpiar Filtros
+                </button>
+            </div>
+
+             
+
+            <!-- Suministros Grid -->
+            <div class="suministros-grid" id="suministrosGrid">
+                <div th:each="suministro : ${suministros}" class="suministro-card" th:onclick="'mostrarDetalles(' + ${suministro.idSuministro} + ')'">
+                    <div class="suministro-image">
+                        <img th:if="${suministro.imagenURL != null and !suministro.imagenURL.isEmpty()}" 
+                             th:src="${suministro.imagenURL}" 
+                             th:alt="${suministro.nombreSuministro}" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <i class="bi bi-box-seam" 
+                           th:style="${suministro.imagenURL != null and !suministro.imagenURL.isEmpty()} ? 'display: none' : 'display: flex'"></i>
+                    </div>
+                    <div class="suministro-name" th:text="${suministro.nombreSuministro}"></div>
+                    <small class="text-muted" th:text="${suministro.codigoSuministro}"></small>
+                    <div class="suministro-info">
+                        <span class="suministro-stock">
+                            <i class="bi bi-boxes"></i>
+                            Stock: <span th:text="${suministro.stockMinimo} + '-' + ${suministro.stockMaximo}"></span>
+                        </span>
+                        <span class="suministro-price">
+                            S/ <span th:text="${#numbers.formatDecimal(suministro.precioCompra, 1, 2)}"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state d-none" id="emptyState">
+                <i class="fas fa-box-open"></i>
+                <h4>No se encontraron productos</h4>
+                <p>No hay productos que coincidan con los filtros seleccionados.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="nuevoSuministroModal" tabindex="-1" aria-labelledby="nuevoSuministroModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="nuevoSuministroModalLabel">Registrar Nuevo Suministro</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="registroSuministroForm">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="nombreSuministro" class="form-label">Nombre del Suministro</label>
+                                <input type="text" class="form-control" id="nombreSuministro" name="nombreSuministro" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="codigoSuministro" class="form-label">Código</label>
+                                <input type="text" class="form-control" id="codigoSuministro" name="codigoSuministro" required>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="stockMinimo" class="form-label">Stock Mínimo</label>
+                                <input type="number" class="form-control" id="stockMinimo" name="stockMinimo" value="0" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="stockMaximo" class="form-label">Stock Máximo</label>
+                                <input type="number" class="form-control" id="stockMaximo" name="stockMaximo" value="1000" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="precioCompra" class="form-label">Precio de Compra</label>
+                                <input type="number" step="0.01" class="form-control" id="precioCompra" name="precioCompra" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="idTipoItem" class="form-label">Tipo de Ítem</label>
+                                <select id="idTipoItem" name="tipoItem.idTipoItem" class="form-select" required>
+                                    <option value="">Seleccione un tipo</option>
+                                    <option th:each="tipoItem : ${tiposItem}" th:value="${tipoItem.idTipoItem}" th:text="${tipoItem.descripcion}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="idProveedor" class="form-label">Proveedor</label>
+                                <select id="idProveedor" name="proveedor.idProveedor" class="form-select" required>
+                                    <option value="">Seleccione un proveedor</option>
+                                    <option th:each="proveedor : ${proveedores}" th:value="${proveedor.idProveedor}" th:text="${proveedor.nombreProveedor}"></option>
+                                </select>
+                            </div>
+                            <div class="col-4"> 
+                                <label for="loteActual" class="form-label">Lote Actual (opcional)</label>
+                                <input type="text" class="form-control" id="loteActual" name="loteActual" placeholder="Ej: LOTE-2025-001">
+                            </div>
+                            <div class="col-12">
+                                <label for="imagenURL" class="form-label">URL de la Imagen (opcional)</label>
+                                <input type="text" class="form-control" id="imagenURL" name="imagenURL" placeholder="http://ejemplo.com/imagen.jpg">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-orange">Guardar Suministro</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="detallesModal" tabindex="-1" aria-labelledby="detallesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="formActualizarSuministro"> 
+                    <input type="hidden" id="edit_idSuministro" name="idSuministro">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="detallesModalLabel">
+                            <i class="bi bi-box-seam"></i> Detalles del Suministro
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div id="detallesView">
+                            </div>
+                        
+                        <div id="editFormView" style="display: none;">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="edit_nombreSuministro" class="form-label">Nombre del Suministro</label>
+                                    <input type="text" class="form-control" id="edit_nombreSuministro" name="nombreSuministro" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="edit_codigoSuministro" class="form-label">Código</label>
+                                    <input type="text" class="form-control" id="edit_codigoSuministro" name="codigoSuministro" required>
+                                </div>
+                                <div class="col-md-4"><label for="edit_stockMinimo" class="form-label">Stock Mínimo</label><input type="number" class="form-control" id="edit_stockMinimo" name="stockMinimo" required></div>
+                                <div class="col-md-4"><label for="edit_stockMaximo" class="form-label">Stock Máximo</label><input type="number" class="form-control" id="edit_stockMaximo" name="stockMaximo" required></div>
+                                <div class="col-md-4"><label for="edit_precioCompra" class="form-label">Precio Compra</label><input type="number" step="0.01" class="form-control" id="edit_precioCompra" name="precioCompra" required></div>
+
+                                <div class="col-md-3">
+                                    <label for="edit_loteActual" class="form-label">Lote Actual</label>
+                                    <input type="text" class="form-control" id="edit_loteActual" name="loteActual">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="edit_idTipoItem" class="form-label">Tipo de Ítem</label>
+                                    <select id="edit_idTipoItem" name="tipoItem.idTipoItem" class="form-select" required>
+                                        <option value="">Seleccione un tipo</option>
+                                        <option th:each="tipoItem : ${tiposItem}" th:value="${tipoItem.idTipoItem}" th:text="${tipoItem.descripcion}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="edit_idProveedor" class="form-label">Proveedor</label>
+                                    <select id="edit_idProveedor" name="proveedor.idProveedor" class="form-select" required>
+                                        <option value="">Seleccione un proveedor</option>
+                                        <option th:each="proveedor : ${proveedores}" th:value="${proveedor.idProveedor}" th:text="${proveedor.nombreProveedor}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-12"><label for="edit_imagenURL" class="form-label">URL de la Imagen (opcional)</label><input type="text" class="form-control" id="edit_imagenURL" name="imagenURL"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCerrarModal">Cerrar</button>
+                        <button type="button" class="btn-orange" id="btnEditarSuministro" onclick="toggleEditMode()">
+                            <i class="bi bi-pencil"></i> Editar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.0/sweetalert2.min.js"></script>
+
+    <script th:inline="javascript">
+
+        // Inicializar las variables JavaScript con los datos del Model de Spring
+    
+        // Variables globales
+        let filtrosActivos = {};
+        let suministroActual = null;
+        let esModoEdicion = false; // Nueva variable para controlar el estado
+
+        // Datos para los filtros (pasados desde el controlador)
+        const tiposItem = /*[[${tiposItem}]]*/ [];
+        const proveedores = /*[[${proveedores}]]*/ [];
+
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar eventos
+            document.getElementById('filterSelect').addEventListener('change', agregarFiltro);
+            
+            // Mostrar resultados iniciales
+            mostrarResultados();
+        });
+
+        // Agregar filtro
+        function agregarFiltro() {
+            const selectFiltro = document.getElementById('filterSelect');
+            const tipoFiltro = selectFiltro.value;
+            
+            if (!tipoFiltro || filtrosActivos.hasOwnProperty(tipoFiltro)) {
+                return;
+            }
+            
+            const etiquetaFiltro = crearEtiquetaFiltro(tipoFiltro);
+            if (etiquetaFiltro) {
+                document.getElementById('filterTags').appendChild(etiquetaFiltro);
+                filtrosActivos[tipoFiltro] = '';
+            }
+            
+            selectFiltro.value = '';
+        }
+
+        // Crear etiqueta de filtro
+        function crearEtiquetaFiltro(tipoFiltro) {
+            const etiqueta = document.createElement('div');
+            etiqueta.className = 'filter-tag';
+            etiqueta.setAttribute('data-filter', tipoFiltro);
+            
+            let opciones = '';
+            let label = '';
+            
+            switch(tipoFiltro) {
+                case 'fechaRegistro':
+                    label = 'Rango de Fecha';
+                    etiqueta.innerHTML = `
+                        <span class="filter-tag-label">Desde:</span>
+                        <input type="date" id="fechaInicio-input" class="form-control form-control-sm" 
+                            style="border: none; background: none; width: auto;"> <span class="filter-tag-label">Hasta:</span>
+                        <input type="date" id="fechaFin-input" class="form-control form-control-sm" 
+                            style="border: none; background: none; width: auto;"> <button type="button" class="remove-filter" onclick="removerFiltro('fechaRegistro')">
+                            <i class="bi bi-x"></i>
+                        </button>
+                                `;
+                    return etiqueta;
+                    
+                case 'tipoItem':
+                    label = 'Tipo';
+                    tiposItem.forEach(item => {
+                        opciones += `<option value="${item.idTipoItem}">${item.descripcion}</option>`;
+                    });
+                    break;
+                    
+                case 'proveedor':
+                    label = 'Proveedor';
+                    proveedores.forEach(prov => {
+                        opciones += `<option value="${prov.idProveedor}">${prov.nombreProveedor}</option>`;
+                    });
+                    
+                    break;
+                 default:
+                    return null;   
+            }
+            
+    
+                etiqueta.innerHTML = `
+                    <span class="filter-tag-label">${label}:</span>
+                    <select class="form-select form-select-sm" 
+                            id="${tipoFiltro}-select"> <option value="">Seleccione</option>
+                        ${opciones}
+                    </select>
+                    <button type="button" class="remove-filter" onclick="removerFiltro('${tipoFiltro}')">
+                        <i class="bi bi-x"></i>
+                    </button>
+                `;
+            
+            
+            return etiqueta;
+        }
+
+
+        // Actualizar filtro
+        function actualizarFiltro(tipoFiltro, valor) {
+            filtrosActivos[tipoFiltro] = valor;
+        }
+
+        // Remover filtro
+        function removerFiltro(tipoFiltro) {
+            const elemento = document.querySelector(`[data-filter="${tipoFiltro}"]`);
+            if (elemento) {
+                elemento.remove();
+            }
+
+            // Lógica especial para el filtro de fechas
+            if (tipoFiltro === 'fechaRegistro') {
+                delete filtrosActivos['fechaInicio'];
+                delete filtrosActivos['fechaFin'];
+            } else {
+                delete filtrosActivos[tipoFiltro];
+            }
+            
+            // Vuelve a aplicar filtros para refrescar los resultados
+            aplicarFiltros();
+        }
+
+        // Limpiar todos los filtros
+        function limpiarFiltros() {
+            filtrosActivos = {};
+            document.getElementById('filterTags').innerHTML = '';
+            
+            // Ocultar el DIV contenedor 'resultsInfo'
+            const resultsInfo = document.getElementById('resultsInfo');
+            if (resultsInfo) {
+                // Ocultar el div y el botón con !important
+                resultsInfo.style.setProperty('display', 'none', 'important'); 
+            }
+            
+            cargarSuministrosIniciales(); // Esto recargará y ejecutará mostrarResultados(), que lo dejará oculto.
+        }
+
+        // Aplicar filtros
+        
+        function aplicarFiltros() {
+            mostrarLoading(true);
+            
+            // 1. Reiniciar filtrosActivos y leer los valores actuales del DOM
+            filtrosActivos = {}; 
+            const formData = new FormData();
+            const filterTags = document.getElementById('filterTags').children;
+            
+            // 2. Iterar sobre todos los filtros activos en la vista
+            for (let tag of filterTags) {
+                const tipoFiltro = tag.getAttribute('data-filter');
+                let valor;
+                
+                switch(tipoFiltro) {
+                    case 'tipoItem':
+                        // Leer el valor del select
+                        valor = document.getElementById('tipoItem-select').value;
+                        if (valor) {
+                            formData.append('idTipoItem', valor);
+                        }
+                        break;
+                        
+                    case 'proveedor':
+                        // Leer el valor del select
+                        valor = document.getElementById('proveedor-select').value;
+                        if (valor) {
+                            formData.append('idProveedor', valor);
+                        }
+                        break;
+                        
+                    case 'fechaRegistro':
+                        // Leer valores de inicio y fin
+                        const fechaInicio = document.getElementById('fechaInicio-input').value;
+                        const fechaFin = document.getElementById('fechaFin-input').value;
+
+                        if (fechaInicio) {
+                            formData.append('fechaInicio', fechaInicio);
+                        }
+                        if (fechaFin) {
+                            formData.append('fechaFin', fechaFin);
+                        }
+                        break;
+                }
+            }
+
+            // 3. Ejecutar la solicitud fetch
+            fetch('/admin/suministros/filtrar', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                mostrarLoading(false);
+                if (data.success) {
+                    mostrarSuministros(data.suministros);
+                    const resultsInfo = document.getElementById('resultsInfo');
+
+                    // Revisa si hay claves de filtro en formData (excluyendo paginación)
+                    const formKeys = Array.from(formData.keys());
+                    // Determina si se envió algún filtro (idTipoItem, idProveedor, fechaInicio, fechaFin)
+                    const tieneFiltrosAplicados = formKeys.some(key => 
+                        key === 'idTipoItem' || key === 'idProveedor' || key === 'fechaInicio' || key === 'fechaFin'
+                    );
+                    
+                    if (tieneFiltrosAplicados) {
+                        // Si hay filtros aplicados, MOSTRAR el div resultsInfo
+                        resultsInfo.style.setProperty('display', 'flex', 'important');
+                        mostrarInfoResultados(data.totalElements); // Llama a tu función para actualizar el conteo y mostrar
+                    } else {
+                        // Si se presionó Filtrar sin nada, ocultar
+                        resultsInfo.style.setProperty('display', 'none', 'important');
+                    }
+                } else {
+                    mostrarError('Error al aplicar filtros: ' + data.message);
+                }
+            })
+            .catch(error => {
+                mostrarLoading(false);
+                console.error('Error:', error);
+                mostrarError('Error de conexión al aplicar filtros');
+            });
+        }
+
+        // Mostrar suministros
+        function mostrarSuministros(suministros) {
+            const grid = document.getElementById('suministrosGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (suministros.length === 0) {
+                grid.style.display = 'none';
+                emptyState.classList.remove('d-none');
+                return;
+            }
+            
+            grid.style.display = 'grid';
+            emptyState.classList.add('d-none');
+            grid.innerHTML = suministros.map(suministro => `
+                <div class="suministro-card" onclick="mostrarDetalles(${suministro.idSuministro})">
+                    <div class="suministro-image">
+                        ${suministro.imagenURL ? 
+                            `<img src="${suministro.imagenURL}" alt="${suministro.nombreSuministro}" 
+                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                             <i class="bi bi-box-seam" style="display: none"></i>` :
+                            `<i class="bi bi-box-seam"></i>`
+                        }
+                    </div>
+                    <div class="suministro-name">${suministro.nombreSuministro}</div>
+                    <small class="text-muted">${suministro.codigoSuministro}</small>
+                    <div class="suministro-info">
+                        <span class="suministro-stock">
+                            <i class="bi bi-boxes"></i>
+                            Stock: ${suministro.stockMinimo}-${suministro.stockMaximo}
+                        </span>
+                        <span class="suministro-price">
+                            S/ ${parseFloat(suministro.precioCompra).toFixed(2)}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Mostrar información de resultados
+        function mostrarInfoResultados(total) {
+            const resultsInfo = document.getElementById('resultsInfo');
+            const resultsCount = document.getElementById('resultsCount');
+            
+            resultsCount.textContent = `${total} suministro${total !== 1 ? 's' : ''} encontrado${total !== 1 ? 's' : ''}`;
+            resultsInfo.style.display = 'flex';
+        }
+
+        // Mostrar loading
+        function mostrarLoading(mostrar) {
+            const loading = document.getElementById('loadingSpinner');
+            const grid = document.getElementById('suministrosGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (mostrar) {
+                loading.style.display = 'block';
+                grid.style.display = 'none';
+                emptyState.classList.remove('d-none');
+            } else {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Mostrar resultados iniciales
+        function mostrarResultados() {
+            const resultsInfo = document.getElementById('resultsInfo');
+            const resultsCount = document.getElementById('resultsCount');
+
+            // 1. Ocultar resultsInfo por defecto
+            // Usamos setProperty con !important para anular el estilo HTML inicial si es necesario.
+            resultsInfo.style.setProperty('display', 'none', 'important'); 
+            
+            if (totalInicial > 0) {
+                // 2. Mostrar el texto de conteo en el <span>, pero NO el DIV completo.
+                // Si el DIV completo se muestra, el botón también se hace visible.
+                resultsCount.textContent = 
+                    `Mostrando los últimos ${totalInicial} suministros`;
+                
+                // **IMPORTANTE**: No poner resultsInfo.style.display = 'flex'; aquí.
+                // Si tienes un elemento fuera de resultsInfo para mostrar este texto, úsalo.
+                // Si no lo tienes, puedes mostrar solo el span para el mensaje inicial.
+                // Mantenemos el DIV OCULTO para ocultar el botón de limpieza.
+            }
+        }
+
+        // Cargar suministros iniciales
+        function cargarSuministrosIniciales() {
+            window.location.reload();
+        }
+
+        
+        // Descargar Excel
+        function descargarExcel() {
+            mostrarLoading(true);
+            
+            const formData = new FormData();
+            
+            // Agregar filtros activos al formulario
+            Object.keys(filtrosActivos).forEach(key => {
+                if (filtrosActivos[key]) {
+                    switch(key) {
+                        case 'fechaRegistro':
+                            formData.append('fechaInicio', filtrosActivos[key]);
+                            break;
+                        case 'tipoItem':
+                            formData.append('idTipoItem', filtrosActivos[key]);
+                            break;
+                        case 'proveedor':
+                            formData.append('idProveedor', filtrosActivos[key]);
+                            break;
+
+                    }
+                }
+            });
+
+            fetch('/admin/suministros/excel', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                mostrarLoading(false);
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Error al generar el Excel');
+            })
+            .then(blob => {
+                // Crear enlace de descarga
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                
+                const fecha = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                a.download = `Reporte_Suministros_${fecha}.xlsx`;
+                
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                mostrarExito('Reporte Excel descargado exitosamente');
+            })
+            .catch(error => {
+                mostrarLoading(false);
+                console.error('Error:', error);
+                mostrarError('Error al descargar el reporte Excel');
+            });
+        }
+
+        // Funciones de notificación
+        function mostrarExito(mensaje) {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: mensaje,
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#ff6600'
+            });
+        }
+
+        function mostrarInfo(mensaje) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Información',
+                text: mensaje,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#ff6600'
+            });
+        }
+
+        // Función para confirmar eliminación (para uso futuro)
+        function confirmarEliminacion(idSuministro, nombreSuministro) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Se eliminará el suministro "${nombreSuministro}"`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    eliminarSuministro(idSuministro);
+                }
+            });
+        }
+
+        // Función para eliminar suministro (para uso futuro)
+        function eliminarSuministro(idSuministro) {
+            fetch(`/admin/suministros/${idSuministro}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarExito('Suministro eliminado exitosamente');
+                    // Recargar la vista o aplicar filtros actuales
+                    if (Object.keys(filtrosActivos).length > 0) {
+                        aplicarFiltros();
+                    } else {
+                        cargarSuministrosIniciales();
+                    }
+                } else {
+                    mostrarError('Error al eliminar suministro: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarError('Error de conexión al eliminar suministro');
+            });
+        }
+
+        // Función para buscar suministros (búsqueda rápida)
+        function buscarSuministros(query) {
+            if (!query || query.length < 2) {
+                cargarSuministrosIniciales();
+                return;
+            }
+            
+            mostrarLoading(true);
+            
+            fetch(`/admin/suministros/buscar?query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                mostrarLoading(false);
+                if (data.success) {
+                    mostrarSuministros(data.suministros);
+                    mostrarInfoResultados(data.totalElements);
+                } else {
+                    mostrarError('Error en la búsqueda: ' + data.message);
+                }
+            })
+            .catch(error => {
+                mostrarLoading(false);
+                console.error('Error:', error);
+                mostrarError('Error de conexión en la búsqueda');
+            });
+        }
+
+        // Event listeners adicionales
+        document.addEventListener('DOMContentLoaded', function() {
+            // Buscar con Enter en cualquier input
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && e.target.type === 'text') {
+                    const query = e.target.value.trim();
+                    if (query) {
+                        buscarSuministros(query);
+                    }
+                }
+            });
+            
+            // Auto-aplicar filtros cuando se selecciona un valor
+            document.addEventListener('change', function(e) {
+                if (e.target.closest('.filter-tag')) {
+                    // Pequeño delay para que se actualice el valor
+                    setTimeout(() => {
+                        const hayFiltrosConValor = Object.values(filtrosActivos).some(valor => valor);
+                        if (hayFiltrosConValor) {
+                            aplicarFiltros();
+                        }
+                    }, 100);
+                }
+            });
+        });
+
+        // Función para manejar errores de imágenes
+        function handleImageError(img) {
+            img.style.display = 'none';
+            const parent = img.parentElement;
+            const icon = parent.querySelector('i');
+            if (icon) {
+                icon.style.display = 'flex';
+            }
+        }
+
+        // Función para formatear números
+        function formatearPrecio(precio) {
+            return new Intl.NumberFormat('es-PE', {
+                style: 'currency',
+                currency: 'PEN',
+                minimumFractionDigits: 2
+            }).format(precio);
+        }
+
+        // Función para formatear fechas
+        function formatearFecha(fecha) {
+            if (!fecha) return 'No especificada';
+            return new Date(fecha).toLocaleDateString('es-PE', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Manejar el envío del formulario de registro de suministro
+        document.getElementById('registroSuministroForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            fetch('/admin/suministros/registrar', {
+                method: 'POST',
+                body: new URLSearchParams(formData) // Envía los datos como URL-encoded
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarExito(data.message);
+                    // Cierra el modal después de 1 segundo
+                    setTimeout(() => {
+                        const modalElement = document.getElementById('nuevoSuministroModal');
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        modal.hide();
+                        window.location.reload(); // Recarga la página para mostrar el nuevo suministro
+                    }, 1000);
+                } else {
+                    mostrarError(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarError('Error de conexión. No se pudo registrar el suministro.');
+            });
+        });
+        function toggleEditMode() {
+            const detallesView = document.getElementById('detallesView');
+            const editFormView = document.getElementById('editFormView');
+            const modalTitle = document.getElementById('detallesModalLabel');
+            const btnEditarActualizar = document.getElementById('btnEditarSuministro');
+            const btnCerrar = document.getElementById('btnCerrarModal');
+            
+            // Si estamos en modo detalles, pasamos a edición
+            if (!esModoEdicion) {
+                if (!suministroActual) {
+                    console.error("No hay datos de suministro para editar.");
+                    return;
+                }
+                
+                // Rellenar el formulario con los datos cargados
+                rellenarFormularioEdicion(suministroActual);
+
+                // Ocultar detalles y mostrar formulario
+                detallesView.style.display = 'none';
+                editFormView.style.display = 'block';
+                
+                // Cambiar título y botón
+                modalTitle.innerHTML = '<i class="bi bi-pencil-square"></i> Editar Suministro';
+                btnEditarActualizar.innerHTML = '<i class="bi bi-save"></i> Guardar Cambios';
+                btnEditarActualizar.classList.remove('btn-orange');
+                btnEditarActualizar.classList.add('btn-success');
+                
+                // El botón 'Cerrar' ahora actúa como 'Cancelar'
+                btnCerrar.textContent = 'Cancelar';
+                
+                // Cambiar la función del botón principal a "enviar actualización"
+                btnEditarActualizar.setAttribute('onclick', 'enviarActualizacion()');
+                esModoEdicion = true;
+                
+            } else {
+                // Si estamos en modo edición, pasamos a detalles (volviendo al estado inicial)
+                mostrarModalDetalles(suministroActual);
+                esModoEdicion = false;
+            }
+        }
+        function rellenarFormularioEdicion(s) {
+            document.getElementById('edit_idSuministro').value = s.idSuministro;
+            document.getElementById('edit_nombreSuministro').value = s.nombreSuministro || '';
+            document.getElementById('edit_codigoSuministro').value = s.codigoSuministro || '';
+            document.getElementById('edit_stockMinimo').value = s.stockMinimo || 0;
+            document.getElementById('edit_stockMaximo').value = s.stockMaximo || 1000;
+            document.getElementById('edit_loteActual').value = s.loteActual || '';
+            document.getElementById('edit_precioCompra').value = parseFloat(s.precioCompra).toFixed(2);
+            document.getElementById('edit_imagenURL').value = s.imagenURL || '';
+            
+            // Seleccionar opciones correctas en los dropdowns (Selects)
+            document.getElementById('edit_idTipoItem').value = s.idTipoItem || (s.tipoItem ? s.tipoItem.idTipoItem : '');
+            document.getElementById('edit_idProveedor').value = s.idProveedor || (s.proveedor ? s.proveedor.idProveedor : '');
+        }
+
+        function enviarActualizacion() {
+            const form = document.getElementById('formActualizarSuministro');
+            const formData = new FormData(form);
+            
+            // Puedes agregar validación aquí antes de enviar
+
+            fetch('/admin/suministros/actualizar', { // Asegúrate de que este endpoint sea correcto
+                method: 'POST',
+                body: new URLSearchParams(formData) // Envía los datos como URL-encoded
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarExito(data.message);
+                    
+                    // Cerrar modal y recargar la página (o actualizar solo la card afectada si es posible)
+                    setTimeout(() => {
+                        const modalElement = document.getElementById('detallesModal');
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        modal.hide();
+                        window.location.reload(); 
+                    }, 500);
+                    
+                } else {
+                    mostrarError(data.message || 'Error al actualizar el suministro.');
+                }
+            })
+            .catch(error => {
+                console.error('Error en la actualización:', error);
+                mostrarError('Error de conexión. No se pudo actualizar el suministro.');
+            });
+        }
+
+        function mostrarModalDetalles(suministro) {
+            // 1. Configurar elementos del modal al modo Detalles
+            const content = document.getElementById('detallesView');
+            const editFormView = document.getElementById('editFormView');
+            const btnEditar = document.getElementById('btnEditarSuministro');
+            const btnCerrar = document.getElementById('btnCerrarModal');
+            const modalTitle = document.getElementById('detallesModalLabel');
+            
+            // Mostrar la vista de detalles (tu código actual)
+            content.style.display = 'block';
+            editFormView.style.display = 'none';
+            modalTitle.innerHTML = '<i class="bi bi-box-seam"></i> Detalles del Suministro';
+
+            // 2. Cargar los detalles en la vista de solo lectura
+            const fechaRegistro = suministro.fechaRegistro ? 
+                new Date(suministro.fechaRegistro).toLocaleDateString('es-PE') : 'No especificada';
+
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="suministro-image mb-3">
+                            ${suministro.imagenURL ? 
+                                `<img src="${suministro.imagenURL}" alt="${suministro.nombreSuministro}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">` :
+                                `<i class="bi bi-box-seam" style="font-size: 4rem; color: #ccc;"></i>`
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="detail-row"><span class="detail-label">Código:</span><span class="detail-value">${suministro.codigoSuministro}</span></div>
+                        <div class="detail-row"><span class="detail-label">Nombre:</span><span class="detail-value">${suministro.nombreSuministro}</span></div>
+                        <div class="detail-row"><span class="detail-label">Tipo de Item:</span><span class="detail-value">${suministro.tipoItemDescripcion || 'No especificado'}</span></div>
+                        <div class="detail-row"><span class="detail-label">Proveedor:</span><span class="detail-value">${suministro.nombreProveedor || 'No especificado'}</span></div>
+                        <div class="detail-row"><span class="detail-label">Precio de Compra:</span><span class="detail-value">S/ ${parseFloat(suministro.precioCompra).toFixed(2)}</span></div>
+                        <div class="detail-row"><span class="detail-label">Stock Mínimo:</span><span class="detail-value">${suministro.stockMinimo}</span></div>
+                        <div class="detail-row"><span class="detail-label">Stock Máximo:</span><span class="detail-value">${suministro.stockMaximo}</span></div>
+                        <div class="detail-row"><span class="detail-label">Lote Actual:</span><span class="detail-value">${suministro.loteActual || 'No especificado'}</span></div>
+                        <div class="detail-row"><span class="detail-label">Fecha de Registro:</span><span class="detail-value">${fechaRegistro}</span></div>
+                    </div>
+                </div>
+            `;
+
+            // 3. Configurar el botón de edición/actualización
+            btnEditar.innerHTML = '<i class="bi bi-pencil"></i> Actualizar'; // O "Editar", según prefieras
+            btnEditar.classList.remove('btn-success');
+            btnEditar.classList.add('btn-orange');
+            btnEditar.setAttribute('onclick', 'toggleEditMode()'); // Configurar para alternar
+            btnCerrar.textContent = 'Cerrar'; // Asegurar que el botón secundario diga 'Cerrar'
+            
+            esModoEdicion = false; // Establecer el estado inicial
+
+            // 4. Mostrar modal
+            new bootstrap.Modal(document.getElementById('detallesModal')).show();
+        }
+
+        function mostrarDetalles(idSuministro) {
+            fetch(`/admin/suministros/${idSuministro}/detalles`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    suministroActual = data.suministro; 
+                    mostrarModalDetalles(data.suministro);
+                } else {
+                    mostrarError('Error al cargar detalles: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarError('Error de conexión al cargar detalles');
+            });
+        }
+    </script>
+</body>
+</html>

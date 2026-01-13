@@ -1,0 +1,4 @@
+npm install bcrypt
+node -e "require('bcrypt').hash('1234', 10).then(hash => console.log(hash))"
+1234
+$2a$10$dN4z4l5cqMMXsAwSyqZqiujaHo0aC8Td7z.KQxK9JOHTjCnSFTrYK

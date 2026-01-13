@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Administración - Inventario</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f2f6ff;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 10px;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .sidebar img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logout-btn i {
+            margin-right: 5px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .main h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #1e2a49;
+        }
+
+        .main p {
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        /* === INDICADORES DE STOCK === */
+        .indicadores-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .indicador-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .indicador-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .indicador-card.no-clickable {
+            cursor: default;
+        }
+
+        .indicador-card.no-clickable:hover {
+            transform: none;
+        }
+
+        .indicador-card.critico {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .indicador-card.advertencia {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .indicador-card.sin-stock {
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+        }
+
+        /* ⭐ NUEVO: Estilo para entregas retrasadas */
+        .indicador-card.retraso {
+            background: linear-gradient(135deg, #f857a6 0%, #ff5858 100%);
+        }
+
+        .indicador-card.info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .indicador-card.valor {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .indicador-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .indicador-numero {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .indicador-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .indicador-hint {
+            font-size: 11px;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        /* === CARDS DE MÓDULOS === */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+        }
+
+        .card i {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .cards a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Colores específicos para los iconos de cada card */
+        .card.seguridad i { color: #2ecc71; }
+        .card.inventario i { color: #3498db; }
+        .card.almacenes i { color: #f1c40f; }
+        .card.movimientos i { color: #e74c3c; }
+        .card.reportes i { color: #9b59b6; }
+        .card.proveedores i { color: #1abc9c; }
+        .card.guias i { color: #e67e22; }
+        .card.notificaciones i { color: #34495e; }
+        .catalogo i { color: #5b34db; }
+
+        /* === MODAL === */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 50px auto;
+            padding: 0;
+            width: 90%;
+            max-width: 1200px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideDown 0.3s;
+            max-height: 85vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ⭐ NUEVO: Header especial para modal de retrasos */
+        .modal-header.retraso {
+            background: linear-gradient(135deg, #f857a6 0%, #ff5858 100%);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .close {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .close:hover {
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: calc(85vh - 100px);
+        }
+
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .modal-table th {
+            background-color: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .modal-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .modal-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .badge-critico {
+            background-color: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-agotado {
+            background-color: #6c757d;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* ⭐ NUEVO: Badges para entregas retrasadas */
+        .badge-retraso {
+            background-color: #ff5858;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-estado {
+            background-color: #ffc107;
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-size: 18px;
+        }
+
+        .no-data i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        @media (max-width: 1200px) {
+            .indicadores-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .indicadores-container {
+                grid-template-columns: 1fr;
+            }
+            .cards {
+                grid-template-columns: 1fr;
+            }
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div>
+        <a href="/admin/vistaAdmin">
+            <img src="/images/Logo.png" alt="Logo">
+        </a>
+        <h2>SISTEMA INVENTARIO</h2>
+    </div>  
+    <form action="/logout" method="post">
+        <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </form>
+</div>
+
+<div class="main">
+    <h1>Panel de Administración</h1>
+    <p>Bienvenido!! Aquí puedes gestionar tu inventario.</p>
+    
+    <!-- === INDICADORES DE STOCK === -->
+    <div class="indicadores-container">
+        <!-- Productos con Stock Crítico -->
+        <div class="indicador-card critico" 
+             th:data-modal="modalProductosCritico" 
+             th:data-count="${indicadores.productosStockCritico}"
+             onclick="handleIndicadorClick(this.getAttribute('data-modal'), parseInt(this.getAttribute('data-count')))">
+            <div class="indicador-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="indicador-numero" th:text="${indicadores.productosStockCritico}">0</div>
+            <div class="indicador-label">Productos Stock Crítico</div>
+            <div class="indicador-hint" th:if="${indicadores.productosStockCritico > 0}">Clic para ver detalle</div>
+            <div class="indicador-hint" th:if="${indicadores.productosStockCritico == 0}">✓ Sin alertas</div>
+        </div>
+
+        <!-- Suministros con Stock Bajo -->
+        <div class="indicador-card advertencia" 
+             th:data-modal="modalSuministrosBajo" 
+             th:data-count="${indicadores.suministrosStockBajo}"
+             onclick="handleIndicadorClick(this.getAttribute('data-modal'), parseInt(this.getAttribute('data-count')))">
+            <div class="indicador-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="indicador-numero" th:text="${indicadores.suministrosStockBajo}">0</div>
+            <div class="indicador-label">Suministros Stock Bajo</div>
+            <div class="indicador-hint" th:if="${indicadores.suministrosStockBajo > 0}">Clic para ver detalle</div>
+            <div class="indicador-hint" th:if="${indicadores.suministrosStockBajo == 0}">✓ Sin alertas</div>
+        </div>
+
+        <!-- Productos Sin Stock -->
+        <div class="indicador-card sin-stock" 
+             th:data-modal="modalProductosSinStock" 
+             th:data-count="${indicadores.productosSinStock}"
+             onclick="handleIndicadorClick(this.getAttribute('data-modal'), parseInt(this.getAttribute('data-count')))">
+            <div class="indicador-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <div class="indicador-numero" th:text="${indicadores.productosSinStock}">0</div>
+            <div class="indicador-label">Productos Sin Stock</div>
+            <div class="indicador-hint" th:if="${indicadores.productosSinStock > 0}">Clic para ver detalle</div>
+            <div class="indicador-hint" th:if="${indicadores.productosSinStock == 0}">✓ Todos disponibles</div>
+        </div>
+
+        <!-- Suministros Sin Stock -->
+        <div class="indicador-card sin-stock" 
+             th:data-modal="modalSuministrosSinStock" 
+             th:data-count="${indicadores.suministrosSinStock}"
+             onclick="handleIndicadorClick(this.getAttribute('data-modal'), parseInt(this.getAttribute('data-count')))">
+            <div class="indicador-icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            <div class="indicador-numero" th:text="${indicadores.suministrosSinStock}">0</div>
+            <div class="indicador-label">Suministros Sin Stock</div>
+            <div class="indicador-hint" th:if="${indicadores.suministrosSinStock > 0}">Clic para ver detalle</div>
+            <div class="indicador-hint" th:if="${indicadores.suministrosSinStock == 0}">✓ Todos disponibles</div>
+        </div>
+
+        <!-- ⭐ NUEVO: Suministros con Entrega Retrasada -->
+        <div class="indicador-card retraso" 
+             th:data-modal="modalSuministrosRetrasados" 
+             th:data-count="${indicadores.suministrosRetrasados != null ? indicadores.suministrosRetrasados : 0}"
+             onclick="handleIndicadorClick(this.getAttribute('data-modal'), parseInt(this.getAttribute('data-count')))">
+            <div class="indicador-icon">
+                <i class="fas fa-truck-loading"></i>
+            </div>
+            <div class="indicador-numero" th:text="${indicadores.suministrosRetrasados != null ? indicadores.suministrosRetrasados : 0}">0</div>
+            <div class="indicador-label">Entregas Retrasadas</div>
+            <div class="indicador-hint" th:if="${indicadores.suministrosRetrasados != null && indicadores.suministrosRetrasados > 0}">Clic para ver detalle</div>
+            <div class="indicador-hint" th:if="${indicadores.suministrosRetrasados == null || indicadores.suministrosRetrasados == 0}">✓ Entregas al día</div>
+        </div>
+
+        <!-- Total Stock Productos (NO CLICKEABLE) -->
+        <div class="indicador-card info no-clickable">
+            <div class="indicador-icon">
+                <i class="fas fa-boxes"></i>
+            </div>
+            <div class="indicador-numero" th:text="${indicadores.totalProductosStock}">0</div>
+            <div class="indicador-label">Total Productos en Stock</div>
+        </div>
+
+        <!-- Total Stock Suministros (NO CLICKEABLE) -->
+        <div class="indicador-card info no-clickable">
+            <div class="indicador-icon">
+                <i class="fas fa-toolbox"></i>
+            </div>
+            <div class="indicador-numero" th:text="${indicadores.totalSuministrosStock}">0</div>
+            <div class="indicador-label">Total Suministros en Stock</div>
+        </div>
+
+        <!-- Valor Total Inventario (NO CLICKEABLE) -->
+        <div class="indicador-card valor no-clickable">
+            <div class="indicador-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="indicador-numero" th:text="${'S/ ' + #numbers.formatDecimal(indicadores.valorTotalInventario, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</div>
+            <div class="indicador-label">Valor Total Inventario</div>
+        </div>
+    </div>
+
+    <!-- === MÓDULOS DEL SISTEMA === -->
+    <div class="cards">
+        
+        <!-- 1. MÓDULO: Seguridad y Acceso (Solo ADMIN) -->
+        <a th:if="${#authorization.expression('hasRole(''ADMINISTRADOR'')')}" th:href="@{/admin/usuarios}">
+            <div class="card seguridad">
+                <i class="fas fa-user-shield"></i>
+                <div class="card-title">Seguridad y Acceso</div>
+            </div>
+        </a>
+
+        <!-- 2. MÓDULO: Proveedores -->
+        <a th:if="${#authorization.expression('hasAnyRole(''ADMINISTRADOR'', ''ROLE_JEFE_PRODUCCION'')')}" th:href="@{/admin/proveedores}">
+            <div class="card proveedores">
+                <i class="fas fa-truck-loading"></i>
+                <div class="card-title">Proveedores</div>
+            </div>
+        </a>
+
+        <!-- 3. MÓDULO: Catálogo -->
+        <a th:if="${#authorization.expression('hasAnyRole(''ADMINISTRADOR'', ''ROLE_JEFE_PRODUCCION'', ''ROLE_VENDEDOR'')')}" th:href="@{/admin/catalogo}">
+            <div class="card catalogo">
+                <i class="fas fa-th-list"></i>
+                <div class="card-title">Catálogo</div>
+            </div>
+        </a>
+
+        <!-- 4. MÓDULO: Gestión de Productos -->
+        <a th:if="${#authorization.expression('hasAnyRole(''ADMINISTRADOR'', ''ROLE_JEFE_PRODUCCION'', ''ROLE_VENDEDOR'')')}" th:href="@{/admin/productos}">
+            <div class="card inventario">
+                <i class="fas fa-boxes"></i>
+                <div class="card-title">Gestión de Productos</div>
+            </div>
+        </a>
+
+        <!-- 5. MÓDULO: Gestión de Suministros -->
+        <a th:if="${#authorization.expression('hasAnyRole(''ADMINISTRADOR'', ''ROLE_JEFE_PRODUCCION'')')}" th:href="@{/admin/suministros}">
+            <div class="card materia-prima">
+                <i class="fas fa-box" style="color: #e67e22;"></i>
+                <div class="card-title">Gestion de suministros</div>
+            </div>
+        </a>
+
+        <!-- 6. MÓDULO: Almacenes y Ubicaciones -->
+        <a th:if="${#authorization.expression('hasAnyRole(''ADMINISTRADOR'',''ROLE_JEFE_PRODUCCION'', ''ROLE_SUPERVISOR'')')}" th:href="@{/admin/almacenes}">
+            <div class="card almacenes">
+                <i class="fas fa-warehouse"></i>
+                <div class="card-title">Almacenes y Ubicaciones</div>
+            </div>
+        </a>
+
+        <!-- 7. MÓDULO: Órdenes de Compra -->
+        <a th:if="${#authorization.expression('hasAnyRole(''ADMINISTRADOR'', ''ROLE_JEFE_PRODUCCION'')')}" th:href="@{/admin/ordenes-compra}">
+            <div class="card ordenes-compra">
+                <i class="fas fa-shopping-cart" style="color: #c42e8a;"></i>
+                <div class="card-title">Órdenes de Compra</div>
+            </div>
+        </a>
+
+        <!-- 8. MÓDULO: Clientes -->
+        <a th:if="${#authorization.expression('hasAnyRole(''ADMINISTRADOR'', ''ROLE_JEFE_PRODUCCION'')')}" th:href="@{/admin/clientes}">
+            <div class="card clientes">
+                <i class="fas fa-briefcase" style="color: #a04326;"></i>
+                <div class="card-title">Clientes</div>  
+            </div>
+        </a>
+
+        <!-- 9. MÓDULO: Movimientos de Inventario -->
+        <a th:if="${#authorization.expression('hasAnyRole(''ADMINISTRADOR'', ''ROLE_JEFE_PRODUCCION'')')}" th:href="@{/admin/salidas-inventario}">
+            <div class="card movimientos">
+                <i class="fas fa-exchange-alt"></i>
+                <div class="card-title">Movimientos de Inventario</div>
+            </div>
+        </a>
+
+        <!-- 10. MÓDULO: Reportes y Dashboards -->
+        <a th:href="@{/admin/reportes}">
+            <div class="card reportes">
+                <i class="fas fa-chart-line"></i>
+                <div class="card-title">Reportes y Dashboards</div>
+            </div>
+        </a>
+
+        <!-- 11. MÓDULO: Guías de Remisión -->
+        <a th:if="${#authorization.expression('hasAnyRole(''ADMINISTRADOR'', ''ROLE_JEFE_PRODUCCION'')')}" th:href="@{/admin/guias-remision}">
+            <div class="card guias">
+                <i class="fas fa-file-invoice"></i>
+                <div class="card-title">Guías de Remisión</div>
+            </div>
+        </a>
+
+        <!-- 12. MÓDULO: Bitácora / Monitoreo -->
+        <a th:if="${#authorization.expression('hasAnyRole(''ADMINISTRADOR'', ''ROLE_JEFE_PRODUCCION'')')}" th:href="@{/admin/auditoria}">
+            <div class="card auditoria">
+                <i class="fas fa-eye" style="color: #1a5a9e;"></i> 
+                <div class="card-title">Bitácora / Monitoreo</div> 
+            </div>
+        </a>
+
+        <!-- 13. MÓDULO: Copia Seguridad -->
+        <a th:if="${#authorization.expression('hasAnyRole(''ADMINISTRADOR'', ''JEFE_PRODUCCION'')')}" th:href="@{/admin/backups}">
+            <div class="card auditoria">
+                <i class="fas fa-archive" style="color: #1a5a9e;"></i> 
+                <div class="card-title">Copia Seguridad</div> 
+            </div>
+        </a>
+        
+    </div>
+
+</div>
+
+<!-- === MODALES === -->
+
+<!-- Modal: Productos con Stock Crítico -->
+<div id="modalProductosCritico" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-exclamation-triangle"></i> Productos con Stock Crítico</h2>
+            <span class="close" onclick="cerrarModal('modalProductosCritico')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div th:if="${indicadores.productosStockCriticoDetalle.isEmpty()}">
+                <div class="no-data">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No hay productos con stock crítico</p>
+                </div>
+            </div>
+            <table class="modal-table" th:if="${!indicadores.productosStockCriticoDetalle.isEmpty()}">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Almacén</th>
+                        <th>Stock Actual</th>
+                        <th>Stock Mínimo</th>
+                        <th>Diferencia</th>
+                        <th>Proveedor</th>
+                        <th>Lote</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${indicadores.productosStockCriticoDetalle}">
+                        <td th:text="${item.codigo}">-</td>
+                        <td th:text="${item.nombre}">-</td>
+                        <td th:text="${item.almacen}">-</td>
+                        <td><span class="badge-critico" th:text="${item.stockActual}">0</span></td>
+                        <td th:text="${item.stockMinimo}">-</td>
+                        <td th:text="${item.diferencia}">-</td>
+                        <td th:text="${item.proveedor}">-</td>
+                        <td th:text="${item.lote}">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Suministros con Stock Bajo -->
+<div id="modalSuministrosBajo" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-exclamation-circle"></i> Suministros con Stock Bajo</h2>
+            <span class="close" onclick="cerrarModal('modalSuministrosBajo')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div th:if="${indicadores.suministrosStockBajoDetalle.isEmpty()}">
+                <div class="no-data">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No hay suministros con stock bajo</p>
+                </div>
+            </div>
+            <table class="modal-table" th:if="${!indicadores.suministrosStockBajoDetalle.isEmpty()}">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Almacén</th>
+                        <th>Stock Actual</th>
+                        <th>Stock Mínimo</th>
+                        <th>Diferencia</th>
+                        <th>Proveedor</th>
+                        <th>Lote</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${indicadores.suministrosStockBajoDetalle}">
+                        <td th:text="${item.codigo}">-</td>
+                        <td th:text="${item.nombre}">-</td>
+                        <td th:text="${item.almacen}">-</td>
+                        <td><span class="badge-critico" th:text="${item.stockActual}">0</span></td>
+                        <td th:text="${item.stockMinimo}">-</td>
+                        <td th:text="${item.diferencia}">-</td>
+                        <td th:text="${item.proveedor}">-</td>
+                        <td th:text="${item.lote}">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Productos Sin Stock -->
+<div id="modalProductosSinStock" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-box-open"></i> Productos Sin Stock</h2>
+            <span class="close" onclick="cerrarModal('modalProductosSinStock')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div th:if="${indicadores.productosSinStockDetalle.isEmpty()}">
+                <div class="no-data">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No hay productos sin stock</p>
+                </div>
+            </div>
+            <table class="modal-table" th:if="${!indicadores.productosSinStockDetalle.isEmpty()}">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Almacén</th>
+                        <th>Estado</th>
+                        <th>Proveedor</th>
+                        <th>Lote</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${indicadores.productosSinStockDetalle}">
+                        <td th:text="${item.codigo}">-</td>
+                        <td th:text="${item.nombre}">-</td>
+                        <td th:text="${item.almacen}">-</td>
+                        <td><span class="badge-agotado">AGOTADO</span></td>
+                        <td th:text="${item.proveedor}">-</td>
+                        <td th:text="${item.lote}">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Suministros Sin Stock -->
+<div id="modalSuministrosSinStock" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-tools"></i> Suministros Sin Stock</h2>
+            <span class="close" onclick="cerrarModal('modalSuministrosSinStock')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div th:if="${indicadores.suministrosSinStockDetalle.isEmpty()}">
+                <div class="no-data">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No hay suministros sin stock</p>
+                </div>
+            </div>
+            <table class="modal-table" th:if="${!indicadores.suministrosSinStockDetalle.isEmpty()}">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Almacén</th>
+                        <th>Estado</th>
+                        <th>Proveedor</th>
+                        <th>Lote</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${indicadores.suministrosSinStockDetalle}">
+                        <td th:text="${item.codigo}">-</td>
+                        <td th:text="${item.nombre}">-</td>
+                        <td th:text="${item.almacen}">-</td>
+                        <td><span class="badge-agotado">AGOTADO</span></td>
+                        <td th:text="${item.proveedor}">-</td>
+                        <td th:text="${item.lote}">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ⭐ NUEVO MODAL: Suministros con Entrega Retrasada -->
+<div id="modalSuministrosRetrasados" class="modal">
+    <div class="modal-content">
+        <div class="modal-header retraso">
+            <h2><i class="fas fa-truck-loading"></i> Suministros con Entrega Retrasada</h2>
+            <span class="close" onclick="cerrarModal('modalSuministrosRetrasados')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div th:if="${indicadores.suministrosRetrasadosDetalle == null || indicadores.suministrosRetrasadosDetalle.isEmpty()}">
+                <div class="no-data">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No hay suministros con entrega retrasada</p>
+                </div>
+            </div>
+            <table class="modal-table" th:if="${indicadores.suministrosRetrasadosDetalle != null && !indicadores.suministrosRetrasadosDetalle.isEmpty()}">
+                <thead>
+                    <tr>
+                        <th>N° Orden</th>
+                        <th>Código</th>
+                        <th>Suministro</th>
+                        <th>Proveedor</th>
+                        <th>Fecha Esperada</th>
+                        <th>Días Retraso</th>
+                        <th>Cantidad Pendiente</th>
+                        <th>Estado</th>
+                        <th>Almacén Destino</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${indicadores.suministrosRetrasadosDetalle}">
+                        <td>
+                            <a th:href="@{/admin/ordenes-compra/{id}(id=${item.idOrden})}" 
+                               style="color: #667eea; font-weight: bold; text-decoration: none;">
+                                <span th:text="${item.numeroOrden}">-</span>
+                            </a>
+                        </td>
+                        <td th:text="${item.codigoSuministro}">-</td>
+                        <td th:text="${item.nombreSuministro}">-</td>
+                        <td th:text="${item.nombreProveedor}">-</td>
+                        <td th:text="${#temporals.format(item.fechaEntregaEsperada, 'dd/MM/yyyy')}">-</td>
+                        <td>
+                            <span class="badge-retraso" th:text="${item.diasRetraso + ' días'}">0 días</span>
+                        </td>
+                        <td th:text="${item.cantidadPendiente}">-</td>
+                        <td>
+                            <span class="badge-estado" th:text="${item.estadoOrden}">-</span>
+                        </td>
+                        <td th:text="${item.almacenDestino}">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Función para manejar clics en indicadores
+    function handleIndicadorClick(modalId, count) {
+        console.log('Click en indicador:', modalId, 'Cantidad:', count);
+        
+        if (count > 0) {
+            mostrarModal(modalId);
+        } else {
+            // Mensaje amigable cuando no hay datos
+            const mensajes = {
+                'modalProductosCritico': '¡Excelente! No hay productos con stock crítico.',
+                'modalSuministrosBajo': '¡Excelente! No hay suministros con stock bajo.',
+                'modalProductosSinStock': '¡Perfecto! Todos los productos tienen stock disponible.',
+                'modalSuministrosSinStock': '¡Perfecto! Todos los suministros tienen stock disponible.',
+                'modalSuministrosRetrasados': '¡Perfecto! Todas las entregas están al día.'
+            };
+            
+            alert('✅ ' + (mensajes[modalId] || 'No hay datos para mostrar.'));
+        }
+    }
+
+    // Función para mostrar modal
+    function mostrarModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = "block";
+            console.log("Modal abierto:", modalId);
+        } else {
+            console.error("Modal no encontrado:", modalId);
+        }
+    }
+
+    // Función para cerrar modal
+    function cerrarModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = "none";
+            console.log("Modal cerrado:", modalId);
+        }
+    }
+
+    // Cerrar modal al hacer clic fuera de él
+    window.onclick = function(event) {
+        const modals = document.getElementsByClassName('modal');
+        for (let modal of modals) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    }
+
+    // Cerrar modal con tecla ESC
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            const modals = document.getElementsByClassName('modal');
+            for (let modal of modals) {
+                modal.style.display = "none";
+            }
+        }
+    });
+
+    // Log para debugging
+    console.log("✅ Sistema de indicadores y modales cargado correctamente");
+</script>
+
+</body>
+</html>

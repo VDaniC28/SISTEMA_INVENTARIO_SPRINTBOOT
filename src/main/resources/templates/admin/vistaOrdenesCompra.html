@@ -1,0 +1,2658 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Administración - Inventario</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f2f6ff;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 10px;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .sidebar img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logout-btn i {
+            margin-right: 5px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* ESTILOS DE vistaOrdenesCompra */
+        .main-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin: 20px 0;
+        }
+        
+        .header-section {
+            border-bottom: 2px solid #f8f9fa;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stats-cards {
+            background: linear-gradient(135deg, #6d3c7c 0%, #6d3c7c 100%);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 25px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .filters-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .filter-selector {
+            width: 200px;
+        }
+        
+        .filter-tag {
+            background: white;
+            border: 2px solid #6f42c1;
+            color: #6f42c1;
+            border-radius: 20px;
+            padding: 8px 16px;
+            margin: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .filter-tag .filter-remove {
+            background: #6f42c1;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .btn-nuevo-orden {
+            background: linear-gradient(135deg, #6d3c7c 0%, #6d3c7c 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .btn-nuevo-orden:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(111, 66, 193, 0.4);
+        }
+        
+        .table-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .table thead th {
+            background: #495057;
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 15px 12px;
+        }
+        
+        .table tbody tr {
+            transition: all 0.3s;
+        }
+        
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+        }
+        
+        .badge-estado {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .estado-Pendiente {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .estado-Confirmada {
+            background-color: #d1edff;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .estado-Cancelada {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .btn-accion {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .btn-accion:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-ver { background: #17a2b8; color: white; }
+        .btn-editar { background: #ffc107; color: #212529; }
+        .btn-confirmar { background: #28a745; color: white; }
+        .btn-cancelar { background: #dc3545; color: white; }
+        .btn-recepcion { background: #6610f2; color: white; }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #6d3c7c 0%, #6d3c7c 100%);
+            color: white;
+        }
+        
+        .loading-spinner {
+            display: none;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: #6f42c1;
+            border-color: #6f42c1;
+        }
+        
+        .pagination .page-link {
+            color: #6f42c1;
+        }
+        
+        .pagination .page-link:hover {
+            color: #5a359a;
+            background-color: #e7e3ff;
+        }
+        
+        .numero-orden {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .monto-total {
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .table-responsive {
+            border-radius: 12px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        .item-detalle-row {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #6f42c1;
+        }
+        .required::after {
+            content: " *";
+            color: red;
+        }
+        .btn-remove-item {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div>
+        <a href="/admin/vistaAdmin">
+            <img src="/images/Logo.png" alt="Logo">
+        </a>
+        <h2>SISTEMA INVENTARIO</h2>
+        </div>  
+    <form action="/logout" method="post">
+        <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </form>
+</div>
+
+<div class="main">
+    <div class="container-fluid px-4">
+        <div class="main-container">
+            <!-- Header con estadísticas -->
+            <div class="header-section">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-3">
+                            <i class="fas fa-shopping-cart text-primary me-2"></i>
+                            Órdenes de Compra
+                        </h2>
+                        <p class="text-muted mb-0">Gestión integral de órdenes de compra del sistema</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-primary btn-nuevo-orden" onclick="nuevaOrden()">
+                            <i class="fas fa-plus me-2"></i>Nueva Orden de Compra
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjetas de estadísticas -->
+            <div class="stats-cards">
+                <div class="row">
+                    <div class="col-md-3 stat-item">
+                        <span class="stat-number" th:text="${totalOrdenes}">0</span>
+                        <div class="stat-label">Total Órdenes</div>
+                    </div>
+                    <div class="col-md-3 stat-item">
+                        <span class="stat-number text-warning" th:text="${totalPendientes}">0</span>
+                        <div class="stat-label">Pendientes</div>
+                    </div>
+                    <div class="col-md-3 stat-item">
+                        <span class="stat-number text-info" th:text="${totalConfirmadas}">0</span>
+                        <div class="stat-label">Confirmadas</div>
+                    </div>
+                    <div class="col-md-3 stat-item">
+                        <span class="stat-number text-danger" th:text="${totalCanceladas}">0</span>
+                        <div class="stat-label">Canceladas</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sistema de filtros -->
+            <div class="filters-container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center gap-3">
+                            <!-- Selector de filtros -->
+                            <select id="filtroSelector" class="form-select filter-selector">
+                                <option value="">Seleccionar filtro...</option>
+                                <option value="proveedor">Proveedor</option>
+                                <option value="almacen">Almacén</option>
+                                <option value="estado">Estado</option>
+                                <option value="fechas">Rango de Fechas</option>
+                            </select>
+                            
+                            <!-- Contenedor de filtros activos -->
+                            <div id="filtrosActivos" class="d-flex flex-wrap">
+                                <!-- Filtro Proveedor -->
+                                <div th:if="${filtroProveedor != null}" class="filter-tag">
+                                    <strong>Proveedor:</strong> 
+                                    <span th:text="${filtroProveedor.nombreProveedor}"></span>
+                                    <div class="filter-remove" onclick="removerFiltro('proveedor')">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                    <input type="hidden" id="filtroProveedorId" th:value="${filtroProveedor.idProveedor}">
+                                </div>
+                                
+                                <!-- Filtro Almacén -->
+                                <div th:if="${filtroAlmacen != null}" class="filter-tag">
+                                    <strong>Almacén:</strong> 
+                                    <span th:text="${filtroAlmacen.nombreAlmacen}"></span>
+                                    <div class="filter-remove" onclick="removerFiltro('almacen')">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                    <input type="hidden" id="filtroAlmacenId" th:value="${filtroAlmacen.idAlmacen}">
+                                </div>
+                                
+                                <!-- Filtro Estado -->
+                                <div th:if="${filtroEstado != null}" class="filter-tag">
+                                    <strong>Estado:</strong> 
+                                    <span th:text="${filtroEstado}"></span>
+                                    <div class="filter-remove" onclick="removerFiltro('estado')">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                    <input type="hidden" id="filtroEstadoValue" th:value="${filtroEstado}">
+                                </div>
+                                
+                                <!-- Filtro Fechas -->
+                                <div th:if="${filtroFechaInicio != null || filtroFechaFin != null}" class="filter-tag">
+                                    <strong>Fechas:</strong> 
+                                    <span th:text="${#temporals.format(filtroFechaInicio, 'dd/MM/yyyy') + ' - ' + #temporals.format(filtroFechaFin, 'dd/MM/yyyy')}"></span>
+                                    <div class="filter-remove" onclick="removerFiltro('fechas')">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                    <input type="hidden" id="filtroFechaInicio" th:value="${filtroFechaInicio}">
+                                    <input type="hidden" id="filtroFechaFin" th:value="${filtroFechaFin}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-primary me-2" onclick="aplicarFiltros()">
+                            <i class="fas fa-filter me-1"></i>Filtrar
+                        </button>
+                      
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de órdenes -->
+            <div class="table-container w-100">
+            
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th >
+                                    <i class="fas fa-hashtag me-1"></i>Número Orden
+                                    <i class="fas fa-sort text-muted ms-1"></i>
+                                </th>
+                                <th  >
+                                    <i class="fas fa-calendar me-1"></i>Fecha Orden
+                                    <i class="fas fa-sort text-muted ms-1"></i>
+                                </th>
+                                <th  >
+                                    <i class="fas fa-truck me-1"></i>Proveedor
+                                    <i class="fas fa-sort text-muted ms-1"></i>
+                                </th>
+                                <th>
+                                    <i class="fas fa-warehouse me-1"></i>Almacén
+                                </th>
+                                <th>
+                                    <i class="fas fa-clock me-1"></i>Fecha Entrega Esperada
+                                </th>
+                                <th>
+                                    <i class="fas fa-check-circle me-1"></i>Fecha Entrega Real
+                                </th>
+                                <th>
+                                    <i class="fas fa-info-circle me-1"></i>Estado
+                                </th>
+                                <th  >
+                                    <i class="fas fa-dollar-sign me-1"></i>Monto Total
+                                    <i class="fas fa-sort text-muted ms-1"></i>
+                                </th>
+                                <th width="200px">
+                                    <i class="fas fa-cogs me-1"></i>Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaOrdenesBody">
+                            <tr th:each="orden : ${ordenes}" th:data-orden-id="${orden.idOrdenes}">
+                                <td class="numero-orden" th:text="${orden.numeroOrdenFormateado}"></td>
+                                <td th:text="${#temporals.format(orden.fechaOrden, 'dd/MM/yyyy')}"></td>
+                                <td>
+                                    <div class="fw-bold" th:text="${orden.proveedor.nombreProveedor}"></div>
+                                </td>
+                                <td th:text="${orden.almacen.nombreAlmacen}"></td>
+                                <td th:text="${orden.fechaEntregaEsperada != null ? #temporals.format(orden.fechaEntregaEsperada, 'dd/MM/yyyy') : ''}"></td>
+                                <td class="fecha-entrega-real text-center"
+                                    th:classappend="${orden.fechaEntregaReal != null ? 'text-success' : 'text-muted'}"
+                                    th:text="${orden.fechaEntregaReal != null ? #temporals.format(orden.fechaEntregaReal, 'dd/MM/yyyy') : 'Pendiente'}">
+                                </td>
+                                <td>
+                                    <span class="badge-estado" 
+                                        th:classappend="'estado-' + ${orden.estadoOrden}"
+                                        th:text="${orden.estadoOrden}"></span>
+                                </td>
+                                <td class="monto-total">
+                                    S/. <span th:text="${#numbers.formatDecimal(orden.montoTotal, 1, 2)}"></span>
+                                </td>
+                                <td>
+                                    <!-- Botón Ver (siempre visible) -->
+                                    <button class="btn-accion btn-ver" 
+                                            th:onclick="'verDetalleOrden(' + ${orden.idOrdenes} + ')'"
+                                            title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    
+                                    <!-- Botón Editar (solo si está Pendiente) -->
+                                    <button class="btn-accion btn-editar" 
+                                            th:if="${orden.puedeSerEditada()}"
+                                            th:onclick="'editarOrden(' + ${orden.idOrdenes} + ')'"
+                                            title="Editar orden">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    
+                                    <!-- Botón Confirmar (solo si está Pendiente) -->
+                                    <button class="btn-accion btn-confirmar" 
+                                            th:if="${orden.puedeSerConfirmada()}"
+                                            th:onclick="'confirmarOrden(' + ${orden.idOrdenes} + ')'"
+                                            title="Confirmar orden">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    
+                                    <!-- Botón Cancelar (solo si está Pendiente) -->
+                                    <button class="btn-accion btn-cancelar" 
+                                            th:if="${orden.puedeSerCancelada()}"
+                                            th:onclick="'cancelarOrden(' + ${orden.idOrdenes} + ')'"
+                                            title="Cancelar orden">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    
+                                    <!-- Botón Recepción (solo si está Confirmada) -->
+                                    <button class="btn-accion btn-recepcion" 
+                                            th:if="${orden.puedeHacerRecepcion()}"
+                                            th:onclick="'gestionarRecepcion(' + ${orden.idOrdenes} + ')'"
+                                            title="Gestionar recepción">
+                                        <i class="fas fa-box"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+               
+                
+                <!-- Estado vacío -->
+                <div class="empty-state" style="display: none;" id="estadoVacio">
+                    <i class="fas fa-search"></i>
+                    <h5>No se encontraron órdenes</h5>
+                    <p>No hay órdenes que coincidan con los filtros aplicados.</p>
+                </div>
+            </div>
+
+            <!-- Paginación -->
+            <div class="d-flex justify-content-between align-items-center mt-4" th:if="${ordenesPage.totalPages > 1}">
+                <div class="text-muted">
+                    Mostrando <span th:text="${ordenesPage.numberOfElements}">10</span> de 
+                    <span th:text="${ordenesPage.totalElements}">50</span> órdenes
+                </div>
+                <nav>
+                    <ul class="pagination mb-0">
+                        <!-- Página anterior -->
+                        <li class="page-item" th:classappend="${ordenesPage.first} ? 'disabled'">
+                            <a class="page-link" 
+                               th:href="@{/admin/ordenes-compra(page=${ordenesPage.number - 1}, size=${ordenesPage.size})}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        
+                        <!-- Páginas numeradas -->
+                        <li class="page-item" 
+                            th:each="page : ${#numbers.sequence(0, ordenesPage.totalPages - 1)}" 
+                            th:classappend="${page == ordenesPage.number} ? 'active'">
+                            <a class="page-link" 
+                               th:href="@{/admin/ordenes-compra(page=${page}, size=${ordenesPage.size})}" 
+                               th:text="${page + 1}">1</a>
+                        </li>
+                        
+                        <!-- Página siguiente -->
+                        <li class="page-item" th:classappend="${ordenesPage.last} ? 'disabled'">
+                            <a class="page-link" 
+                               th:href="@{/admin/ordenes-compra(page=${ordenesPage.number + 1}, size=${ordenesPage.size})}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Genérico para Confirmar/Cancelar -->
+    <div class="modal fade" id="modalConfirmar" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tituloModalConfirmar">Confirmar Acción</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="contenidoModalConfirmar">
+                    <!-- Contenido dinámico -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmarAccion">
+                        <i class="fas fa-check"></i> Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Modal Ver Detalles de Orden -->
+    <div class="modal fade" id="modalDetalleOrden" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-eye me-2"></i>
+                        Detalles de Orden de Compra
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="contenidoDetalleOrden">
+                    <div class="loading-spinner text-center p-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <div class="mt-2">Cargando detalles...</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="exportarExcelOrdenActual()">
+                    <i class="fas fa-file-excel me-1"></i>Exportar a Excel
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cerrar
+                </button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmar Acción -->
+    <div class="modal fade" id="modalConfirmar" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tituloModalConfirmar">Confirmar Acción</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="contenidoModalConfirmar">
+                    ¿Está seguro de realizar esta acción?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmarAccion">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Gestión de Recepción -->
+    <div class="modal fade" id="modalRecepcion" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-box me-2"></i>
+                        Gestión de Recepción
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="contenidoRecepcion">
+                    <!-- Contenido dinámico -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-success" onclick="guardarRecepcion()">
+                        <i class="fas fa-save me-1"></i>Guardar Recepción
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Agregar Filtro -->
+    <div class="modal fade" id="modalFiltro" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Filtro</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="contenidoModalFiltro">
+                    <!-- Contenido dinámico según el tipo de filtro -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="agregarFiltro()">Agregar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Nueva Orden de Compra -->
+<div class="modal fade" id="ordenModal" tabindex="-1" aria-labelledby="ordenModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Nueva Orden de Compra
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <div id="formAlerts" class="mb-3">
+            </div>
+            <div class="modal-body">
+                <form id="formOrdenCompra"action="/admin/ordenes-compra/guardar" method="POST">
+                    <!-- Sección: Información General -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información General</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label required">Proveedor</label>
+                                    <select class="form-select" id="idProveedor" name="idProveedor" required>
+                                        <option value="">Seleccione un proveedor...</option>
+                                    </select>
+                                    <small class="text-muted">Proveedor que suministrará los productos</small>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label class="form-label required">Almacén Destino</label>
+                                    <select class="form-select" id="idAlmacen" name="idAlmacen" required>
+                                        <option value="">Seleccione un almacén...</option>
+                                    </select>
+                                    <small class="text-muted">Almacén donde se recibirán los productos</small>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha Entrega Esperada</label>
+                                    <input type="date" class="form-control" id="fechaEntregaEsperada" name="fechaEntregaEsperada" required>
+                                    <small class="text-muted">Fecha estimada de entrega</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección: Detalles de la Orden -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="fas fa-list me-2"></i>Detalles de la Orden</h6>
+                            <button type="button" class="btn btn-success btn-sm" onclick="abrirModalAgregarItem()">
+                                <i class="fas fa-plus me-1"></i>Agregar Ítem
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="contenedorDetalles">
+                                <div class="alert alert-info text-center">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No hay ítems agregados. Use el botón "Agregar Ítem" para comenzar.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección: Resumen de Totales -->
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-calculator me-2"></i>Resumen de Totales</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8"></div>
+                                <div class="col-md-4">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td class="text-end"><strong>Subtotal:</strong></td>
+                                            <td class="text-end">S/. <span id="displaySubtotal">0.00</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-end">
+                                                <strong>Descuentos:</strong>
+                                                <input type="number" class="form-control form-control-sm d-inline w-50" 
+                                                       id="descuentosGlobales" value="0" min="0" step="0.01" 
+                                                       onchange="recalcularTotales()">
+                                            </td>
+                                            <td class="text-end">S/. <span id="displayDescuentos">0.00</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-end">
+                                                <strong>Impuestos (IGV 18%):</strong>
+                                            </td>
+                                            <td class="text-end">S/. <span id="displayImpuestos">0.00</span></td>
+                                        </tr>
+                                        <tr class="table-active">
+                                            <td class="text-end"><strong class="fs-5">TOTAL:</strong></td>
+                                            <td class="text-end"><strong class="fs-5 text-success">S/. <span id="displayTotal">0.00</span></strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="btnGuardarOrden" onclick="guardarOrdenCompra()">
+                    <i class="fas fa-save me-1"></i>Guardar Orden
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Agregar Ítem -->
+<div class="modal fade" id="modalAgregarItem" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-cart-plus me-2"></i>Agregar Ítem a la Orden
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="formAgregarItem">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label required">Tipo de Ítem</label>
+                            <select class="form-select" id="tipoItem" onchange="cargarItemsPorTipo()" required>
+                                <option value="">Seleccione...</option>
+                                <option value="producto">Producto</option>
+                                <option value="suministro">Suministro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label required">Seleccionar Ítem</label>
+                            <select class="form-select" id="itemSeleccionado" onchange="cargarDatosItem(this.value)" required disabled>
+                                <option value="">Primero seleccione el tipo...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="infoItem" style="display: none;" class="alert alert-info">
+                        <strong>Información del ítem:</strong>
+                        <div id="detallesItemSeleccionado"></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label required">Cantidad</label>
+                            <input type="number" class="form-control" id="cantidadItem" 
+                                   min="1" value="1" required onchange="calcularSubtotalItem()">
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label required">Precio Unitario</label>
+                            <input type="number" class="form-control" id="precioUnitarioItem" 
+                                   min="0" step="0.01" value="0" required onchange="calcularSubtotalItem()">
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label">Descuento Unitario</label>
+                            <input type="number" class="form-control" id="descuentoUnitarioItem" 
+                                   min="0" step="0.01" value="0" onchange="calcularSubtotalItem()">
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Impuesto Unitario</label>
+                            <input type="number" class="form-control" id="impuestoUnitarioItem" 
+                                   min="0" step="0.01" value="0" onchange="calcularSubtotalItem()">
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <div class="alert alert-success mb-0">
+                                <strong>Subtotal Línea:</strong> S/. <span id="subtotalLineaDisplay">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="agregarItemADetalle()">
+                    <i class="fas fa-check me-1"></i>Agregar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ============================================================================
+    // VARIABLES GLOBALES
+    // ============================================================================
+    let filtrosActivos = {
+        proveedor: null,
+        almacen: null,
+        estado: null,
+        fechaInicio: null,
+        fechaFin: null
+    };
+    // Variable global para almacenar el ID de la orden actual en el modal
+    let ordenActualId = null;
+    const TASA_IGV = 0.18; // 18% para Perú
+    let ordenActual = 'fechaOrden';
+    let direccionActual = 'desc';
+    let paginaActual = 0;
+    let tamanioPagina = 10;
+
+    // Variable global para almacenar los ítems cargados desde el backend (productos y suministros)
+    let itemsDisponibles = []; 
+    // Variables para el formulario de orden
+    let detallesOrden = [];
+    let contadorDetalles = 0;
+
+    // ============================================================================
+    // INICIALIZACIÓN
+    // ============================================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarFiltrosIniciales();
+        configurarEventos();
+        configurarFormularioOrden();
+    });
+
+    function cargarFiltrosIniciales() {
+        const proveedorId = document.getElementById('filtroProveedorId');
+        if (proveedorId) filtrosActivos.proveedor = proveedorId.value;
+        
+        const almacenId = document.getElementById('filtroAlmacenId');
+        if (almacenId) filtrosActivos.almacen = almacenId.value;
+        
+        const estadoValue = document.getElementById('filtroEstadoValue');
+        if (estadoValue) filtrosActivos.estado = estadoValue.value;
+        
+        const fechaInicio = document.getElementById('filtroFechaInicio');
+        const fechaFin = document.getElementById('filtroFechaFin');
+        if (fechaInicio && fechaFin) {
+            filtrosActivos.fechaInicio = fechaInicio.value;
+            filtrosActivos.fechaFin = fechaFin.value;
+        }
+    }
+
+    function configurarEventos() {
+        const selector = document.getElementById('filtroSelector');
+        if (selector) {
+            selector.addEventListener('change', function() {
+                const tipoFiltro = this.value;
+                if (tipoFiltro) {
+                    mostrarModalFiltro(tipoFiltro);
+                    this.value = '';
+                }
+            });
+        }
+    }
+
+    function configurarFormularioOrden() {
+        const form = document.getElementById('ordenFormulario');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                guardarOrdenCompra();
+            });
+        }
+    }
+
+    // ============================================================================
+    // GESTIÓN DE FILTROS
+    // ============================================================================
+    function mostrarModalFiltro(tipo) {
+        const modalFiltro = new bootstrap.Modal(document.getElementById('modalFiltro'));
+        const contenido = document.getElementById('contenidoModalFiltro');
+        
+        switch(tipo) {
+            case 'proveedor':
+                contenido.innerHTML = `
+                    <div class="mb-3">
+                        <label for="selectProveedor" class="form-label">Seleccionar Proveedor:</label>
+                        <select class="form-select" id="selectProveedor">
+                            <option value="">Cargando proveedores...</option>
+                        </select>
+                    </div>
+                `;
+                cargarProveedoresParaFiltro();
+                break;
+                
+            case 'almacen':
+                contenido.innerHTML = `
+                    <div class="mb-3">
+                        <label for="selectAlmacen" class="form-label">Seleccionar Almacén:</label>
+                        <select class="form-select" id="selectAlmacen">
+                            <option value="">Cargando almacenes...</option>
+                        </select>
+                    </div>
+                `;
+                cargarAlmacenesParaFiltro();
+                break;
+                
+            case 'estado':
+                contenido.innerHTML = `
+                    <div class="mb-3">
+                        <label for="selectEstado" class="form-label">Seleccionar Estado:</label>
+                        <select class="form-select" id="selectEstado">
+                            <option value="">Seleccionar...</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Confirmada">Confirmada</option>
+                            <option value="Cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                `;
+                break;
+                
+            case 'fechas':
+                contenido.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="fechaInicio" class="form-label">Fecha Inicio:</label>
+                            <input type="date" class="form-control" id="fechaInicio">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fechaFin" class="form-label">Fecha Fin:</label>
+                            <input type="date" class="form-control" id="fechaFin">
+                        </div>
+                    </div>
+                `;
+                break;
+        }
+        
+        document.getElementById('modalFiltro').setAttribute('data-tipo-filtro', tipo);
+        modalFiltro.show();
+    }
+
+    function cargarProveedoresParaFiltro() {
+        fetch('/admin/ordenes-compra/api/filtros')
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('selectProveedor');
+                select.innerHTML = '<option value="">Seleccionar proveedor...</option>';
+                if (data.success && data.proveedores) {
+                    data.proveedores.forEach(proveedor => {
+                        select.innerHTML += `<option value="${proveedor.id}">${proveedor.nombre}</option>`;
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta('Error al cargar proveedores', 'danger');
+            });
+    }
+
+    function cargarAlmacenesParaFiltro() {
+        fetch('/admin/ordenes-compra/api/filtros')
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('selectAlmacen');
+                select.innerHTML = '<option value="">Seleccionar almacén...</option>';
+                if (data.success && data.almacenes) {
+                    data.almacenes.forEach(almacen => {
+                        select.innerHTML += `<option value="${almacen.id}">${almacen.nombre}</option>`;
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta('Error al cargar almacenes', 'danger');
+            });
+    }
+
+    function agregarFiltro() {
+        const tipoFiltro = document.getElementById('modalFiltro').getAttribute('data-tipo-filtro');
+        
+        switch(tipoFiltro) {
+            case 'proveedor':
+                const selectProveedor = document.getElementById('selectProveedor');
+                if (selectProveedor.value) {
+                    filtrosActivos.proveedor = selectProveedor.value;
+                    crearEtiquetaFiltro('Proveedor', selectProveedor.options[selectProveedor.selectedIndex].text, 'proveedor');
+                }
+                break;
+                
+            case 'almacen':
+                const selectAlmacen = document.getElementById('selectAlmacen');
+                if (selectAlmacen.value) {
+                    filtrosActivos.almacen = selectAlmacen.value;
+                    crearEtiquetaFiltro('Almacén', selectAlmacen.options[selectAlmacen.selectedIndex].text, 'almacen');
+                }
+                break;
+                
+            case 'estado':
+                const selectEstado = document.getElementById('selectEstado');
+                if (selectEstado.value) {
+                    filtrosActivos.estado = selectEstado.value;
+                    crearEtiquetaFiltro('Estado', selectEstado.options[selectEstado.selectedIndex].text, 'estado');
+                }
+                break;
+                
+            case 'fechas':
+                const fechaInicio = document.getElementById('fechaInicio').value;
+                const fechaFin = document.getElementById('fechaFin').value;
+                if (fechaInicio && fechaFin) {
+                    filtrosActivos.fechaInicio = fechaInicio;
+                    filtrosActivos.fechaFin = fechaFin;
+                    crearEtiquetaFiltro('Fechas', `${formatearFecha(fechaInicio)} - ${formatearFecha(fechaFin)}`, 'fechas');
+                } else if (fechaInicio || fechaFin) {
+                    mostrarAlerta('Debe seleccionar tanto fecha inicio como fecha fin', 'warning');
+                    return;
+                }
+                break;
+        }
+        
+        bootstrap.Modal.getInstance(document.getElementById('modalFiltro')).hide();
+    }
+
+    function crearEtiquetaFiltro(nombre, valor, tipo) {
+        const contenedor = document.getElementById('filtrosActivos');
+        const existente = contenedor.querySelector(`[data-filtro-tipo="${tipo}"]`);
+        if (existente) existente.remove();
+        
+        const etiqueta = document.createElement('div');
+        etiqueta.className = 'filter-tag';
+        etiqueta.setAttribute('data-filtro-tipo', tipo);
+        etiqueta.innerHTML = `
+            <strong>${nombre}:</strong> <span>${valor}</span>
+            <div class="filter-remove" onclick="removerFiltro('${tipo}')">
+                <i class="fas fa-times"></i>
+            </div>
+        `;
+        contenedor.appendChild(etiqueta);
+    }
+
+    function removerFiltro(tipo) {
+        filtrosActivos[tipo] = null;
+        const contenedor = document.getElementById('filtrosActivos');
+        const etiqueta = contenedor.querySelector(`[data-filtro-tipo="${tipo}"]`);
+        if (etiqueta) etiqueta.remove();
+    }
+
+    function aplicarFiltros() {
+        paginaActual = 0;
+        buscarOrdenes();
+    }
+
+    function buscarOrdenes() {
+        const formData = new FormData();
+        formData.append('page', paginaActual);
+        formData.append('size', tamanioPagina);
+        formData.append('sortBy', ordenActual);
+        formData.append('sortDir', direccionActual);
+        
+        if (filtrosActivos.proveedor) formData.append('proveedorId', filtrosActivos.proveedor);
+        if (filtrosActivos.almacen) formData.append('almacenId', filtrosActivos.almacen);
+        if (filtrosActivos.estado) formData.append('estado', filtrosActivos.estado);
+        if (filtrosActivos.fechaInicio) formData.append('fechaInicio', filtrosActivos.fechaInicio);
+        if (filtrosActivos.fechaFin) formData.append('fechaFin', filtrosActivos.fechaFin);
+
+        fetch('/admin/ordenes-compra/api/buscar', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                actualizarTablaOrdenes(data.ordenes);
+            } else {
+                mostrarAlerta(data.message || 'Error al buscar órdenes', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarAlerta('Error al realizar la búsqueda', 'danger');
+        });
+    }
+
+    // ============================================================================
+    // RENDERIZADO DE TABLA (FUNCIÓN FALTANTE)
+    // ============================================================================
+    function actualizarTablaOrdenes(ordenes) {
+        const tbody = document.getElementById('tablaOrdenesBody');
+        if (!tbody) {
+            console.error("No se encontró el cuerpo de la tabla (ID: tablaOrdenesBody)");
+            return;
+        }
+
+        let filasHTML = '';
+
+        if (!ordenes || ordenes.length === 0) {
+            filasHTML = '<tr><td colspan="10" class="text-center py-4">No se encontraron órdenes con los filtros aplicados.</td></tr>';
+        } else {
+            ordenes.forEach(orden => {
+                
+                // 1. Estados y Clases
+                // El API de búsqueda usa 'estado' (para la clase) y 'estadoTexto' (para el badge)
+                const estado = orden.estado; 
+                const claseEstado = `estado-${estado}`; 
+                
+                // 2. Fecha de Entrega Real
+                // El API ya envía 'fechaEntregaReal' como string "dd/MM/yyyy" o null
+                const fechaRealTexto = orden.fechaEntregaReal || 'Pendiente';
+                const claseFechaReal = orden.fechaEntregaReal ? 'text-success' : 'text-muted';
+
+                // 3. Obtener nombres de las propiedades correctas del JSON del API de búsqueda:
+                // - Proveedor: orden.proveedor (viene como string plano)
+                // - Almacén: orden.almacen (viene como string plano)
+                // - Número de Orden: orden.numeroOrden
+                // - ID de la orden: orden.id
+                // - Fecha de Orden: orden.fechaOrden (viene como string "dd/MM/yyyy")
+                // - Estado: orden.estadoTexto (para el texto legible)
+                
+                filasHTML += `
+                    <tr data-orden-id="${orden.id}">
+                        <td class="numero-orden">${orden.numeroOrden || 'N/A'}</td>
+                        
+                        <td>${orden.fechaOrden || 'N/A'}</td>
+                        
+                        <td><div class="fw-bold">${orden.proveedor || 'N/A'}</div></td>
+                        
+                        <td>${orden.almacen || 'N/A'}</td>
+                        
+                        <td>${orden.fechaEntregaEsperada || ''}</td>
+                        
+                        <td class="fecha-entrega-real text-center">
+                            <span class="${claseFechaReal}">
+                                ${fechaRealTexto}
+                            </span>
+                        </td>
+                        
+                        <td><span class="badge-estado ${claseEstado}">${orden.estadoTexto}</span></td>
+                        
+                        <td class="monto-total">${formatearMoneda(orden.montoTotal || 0)}</td>
+                        
+                        <td id="acciones-${orden.id}">
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Insertar el HTML
+        tbody.innerHTML = filasHTML;
+        
+        // CRÍTICO: Llamar a la función que actualiza los botones dinámicamente
+        ordenes.forEach(orden => {
+            // Usar los campos del API: orden.id, orden.estado, orden.fechaEntregaReal
+            if (typeof actualizarBotonesOrden !== 'undefined') {
+                actualizarBotonesOrden(orden.id, orden.estado, orden.fechaEntregaReal); 
+            }
+        });
+    }   
+       
+
+    /**
+    * Actualiza la tabla de detalles en la vista ('contenedorDetalles').
+    * Se llama después de agregar o eliminar un ítem.
+    */
+    function actualizarTablaDetalles() {
+        const contenedor = document.getElementById('contenedorDetalles');
+        
+        // CRÍTICO: Asegúrate de que la variable global 'detallesOrden' esté definida.
+        if (typeof detallesOrden === 'undefined' || detallesOrden.length === 0) {
+            contenedor.innerHTML = `
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No hay ítems agregados. Use el botón "Agregar Ítem" para comenzar.
+                </div>
+            `;
+            // También llama a actualizarTotalesOrden para poner los totales a cero.
+            actualizarTotalesOrden(); 
+            return;
+        }
+
+        let tablaHTML = `
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead class="bg-dark text-white">
+                        <tr>
+                            <th>#</th>
+                            <th>Tipo</th>
+                            <th>Código/Nombre</th>
+                            <th>Cantidad</th>
+                            <th>P. Unitario</th>
+                            <th>Desc.</th>
+                            <th>Imp.</th>
+                            <th>Subtotal</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        // Recorre la lista global de detallesOrden
+        detallesOrden.forEach((detalle, index) => {
+            tablaHTML += `
+                <tr id="detalle-row-${detalle.tempId}">
+                    <td>${index + 1}</td>
+                    <td><span class="badge ${detalle.tipoItem === 'producto' ? 'bg-primary' : 'bg-secondary'}">${detalle.tipoItem.toUpperCase()}</span></td>
+                    <td>${detalle.codigo} - ${detalle.nombre}</td>
+                    <td>${detalle.cantidad}</td>
+                    <td>${detalle.precioUnitario.toFixed(2)}</td>
+                    <td>${detalle.descuentoUnitario.toFixed(2)}</td>
+                    <td>${detalle.impuestoUnitario.toFixed(2)}</td>
+                    <td>${detalle.subtotal.toFixed(2)}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="eliminarItemDetalle(${detalle.tempId})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tablaHTML += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        contenedor.innerHTML = tablaHTML;
+    }
+    // ============================================================================
+    // GESTIÓN DE ÓRDENES - VER DETALLES
+    // ============================================================================
+    function verDetalleOrden(id) {
+        // Guardar el ID globalmente
+        ordenActualId = id;
+        
+        const modal = new bootstrap.Modal(document.getElementById('modalDetalleOrden'));
+        const contenido = document.getElementById('contenidoDetalleOrden');
+        
+        contenido.innerHTML = `
+            <div class="loading-spinner text-center p-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="mt-2">Cargando detalles...</div>
+            </div>
+        `;
+        
+        modal.show();
+        
+        fetch(`/admin/ordenes-compra/api/detalles/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarDetalleOrden(data);
+                } else {
+                    contenido.innerHTML = `<div class="alert alert-danger">${data.message || 'Error al cargar'}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                contenido.innerHTML = `<div class="alert alert-danger">Error al cargar los detalles</div>`;
+            });
+    }
+
+    function mostrarDetalleOrden(data) {
+        const contenido = document.getElementById('contenidoDetalleOrden');
+        const orden = data.orden;
+        const detalles = data.detalles;
+        const resumen = data.resumen;
+        
+        contenido.innerHTML = `
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-info-circle me-2"></i>Información General</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>Número:</strong></td><td>${orden.numeroOrden}</td></tr>
+                        <tr><td><strong>Fecha:</strong></td><td>${orden.fechaOrden}</td></tr>
+                        <tr><td><strong>Proveedor:</strong></td><td>${orden.proveedor}</td></tr>
+                        <tr><td><strong>Almacén:</strong></td><td>${orden.almacen}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-calendar me-2"></i>Fechas y Estado</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>Entrega Esperada:</strong></td><td>${orden.fechaEntregaEsperada || 'No definida'}</td></tr>
+                        <tr><td><strong>Entrega Real:</strong></td><td>${orden.fechaEntregaReal || 'Pendiente'}</td></tr>
+                        <tr><td><strong>Estado:</strong></td><td><span class="badge-estado estado-${orden.estado}">${orden.estadoTexto}</span></td></tr>
+                    </table>
+                </div>
+            </div>
+            
+            <h6><i class="fas fa-list me-2"></i>Detalles de Items</h6>
+            <div class="table-responsive mb-4">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>Código</th><th>Item</th><th>Tipo</th><th>Cant. Sol.</th><th>Cant. Rec.</th><th>Precio</th><th>Total</th><th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${detalles.map(d => `
+                            <tr>
+                                <td>${d.codigoItem}</td>
+                                <td>${d.nombreItem}</td>
+                                <td><span class="badge bg-secondary">${d.tipoItem}</span></td>
+                                <td class="text-center">${d.cantidadSolicitada}</td>
+                                <td class="text-center">${d.cantidadRecibida}</td>
+                                <td class="text-end">S/. ${formatearNumero(d.precioUnitario)}</td>
+                                <td class="text-end">S/. ${formatearNumero(d.totalLinea)}</td>
+                                <td><small class="text-muted">${d.estadoRecepcion}</small></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8"></div>
+                <div class="col-md-4">
+                    <h6><i class="fas fa-calculator me-2"></i>Resumen</h6>
+                    <table class="table table-sm">
+                        <tr><td>Total Items:</td><td class="text-end"><strong>${resumen.totalItems}</strong></td></tr>
+                        <tr><td>Subtotal:</td><td class="text-end">S/. ${formatearNumero(resumen.subtotal)}</td></tr>
+                        <tr><td>Descuentos:</td><td class="text-end">S/. ${formatearNumero(resumen.descuentos)}</td></tr>
+                        <tr><td>Impuestos:</td><td class="text-end">S/. ${formatearNumero(resumen.impuestos)}</td></tr>
+                        <tr class="border-top"><td><strong>Total:</strong></td><td class="text-end"><strong>S/. ${formatearNumero(resumen.total)}</strong></td></tr>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    // ============================================================================
+    // ACCIONES SOBRE ÓRDENES
+    // ============================================================================
+    function confirmarOrden(id) {
+        const modal = new bootstrap.Modal(document.getElementById('modalConfirmar'));
+        document.getElementById('tituloModalConfirmar').textContent = 'Confirmar Orden';
+        document.getElementById('contenidoModalConfirmar').innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>¿Está seguro de confirmar esta orden de compra?</strong>
+            </div>
+            <p>Esta acción realizará lo siguiente:</p>
+            <ul>
+                <li>Cambiará el estado a <strong>"Confirmada"</strong></li>
+                <li>No se podrá editar ni cancelar la orden</li>
+                <li>Se habilitará la opción de recepción de mercancía</li>
+            </ul>
+        `;
+        
+        document.getElementById('btnConfirmarAccion').onclick = function() {
+            fetch(`/admin/ordenes-compra/api/confirmar/${id}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        mostrarAlerta(data.message, 'success');
+                        // Actualizar los botones de la fila sin recargar toda la página
+                        actualizarBotonesOrden(id, 'Confirmada');
+                    } else {
+                        mostrarAlerta(data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    mostrarAlerta('Error al confirmar la orden', 'danger');
+                });
+            bootstrap.Modal.getInstance(document.getElementById('modalConfirmar')).hide();
+        };
+        
+        modal.show();
+    }
+
+    function cancelarOrden(id) {
+        const modal = new bootstrap.Modal(document.getElementById('modalConfirmar'));
+        document.getElementById('tituloModalConfirmar').textContent = 'Cancelar Orden';
+        document.getElementById('contenidoModalConfirmar').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-times-circle me-2"></i>
+                <strong>¿Está seguro de cancelar esta orden de compra?</strong>
+            </div>
+            <div class="mb-3">
+                <label for="motivoCancelacion" class="form-label">Motivo (opcional):</label>
+                <textarea class="form-control" id="motivoCancelacion" rows="3" 
+                        placeholder="Ej: Error en cantidades, cambio de proveedor, etc."></textarea>
+            </div>
+            <p class="text-warning">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Esta acción no se puede deshacer. La orden quedará en estado "Cancelada".
+            </p>
+        `;
+        
+        document.getElementById('btnConfirmarAccion').onclick = function() {
+            const motivo = document.getElementById('motivoCancelacion').value;
+            const formData = new FormData();
+            formData.append('motivo', motivo);
+            
+            fetch(`/admin/ordenes-compra/api/cancelar/${id}`, { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        mostrarAlerta(data.message, 'success');
+                        // Actualizar los botones de la fila
+                        actualizarBotonesOrden(id, 'Cancelada');
+                    } else {
+                        mostrarAlerta(data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    mostrarAlerta('Error al cancelar la orden', 'danger');
+                });
+            bootstrap.Modal.getInstance(document.getElementById('modalConfirmar')).hide();
+        };
+        
+        modal.show();
+    }
+
+    function gestionarRecepcion(id) {
+        const modal = new bootstrap.Modal(document.getElementById('modalRecepcion'));
+        const contenido = document.getElementById('contenidoRecepcion');
+        
+        contenido.innerHTML = `
+            <div class="text-center p-4">
+                <div class="spinner-border text-primary"></div>
+                <p class="mt-2">Cargando información de recepción...</p>
+            </div>
+        `;
+        modal.show();
+        
+        fetch(`/admin/ordenes-compra/api/detalles/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarFormularioRecepcion(data, id);
+                } else {
+                    contenido.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                contenido.innerHTML = `<div class="alert alert-danger">Error al cargar información de recepción</div>`;
+            });
+    }
+
+    function mostrarFormularioRecepcion(data, ordenId) {
+        const contenido = document.getElementById('contenidoRecepcion');
+        const detalles = data.detalles;
+        const orden = data.orden;
+        
+        contenido.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Orden ${orden.numeroOrden}</strong> - Proveedor: ${orden.proveedor}
+            </div>
+            <div class="alert alert-warning">
+                <i class="fas fa-box me-2"></i>
+                Ingrese las cantidades recibidas para cada item. Solo puede recibir hasta la cantidad pendiente.
+            </div>
+            <form id="formRecepcion">
+                <input type="hidden" name="ordenId" value="${ordenId}">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Item</th>
+                                <th class="text-center">Solicitada</th>
+                                <th class="text-center">Ya Recibida</th>
+                                <th class="text-center">Pendiente</th>
+                                <th class="text-center">Recibir Ahora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${detalles.map(d => `
+                                <tr>
+                                    <td>
+                                        <strong>${d.nombreItem}</strong><br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-barcode"></i> ${d.codigoItem}
+                                        </small>
+                                        <input type="hidden" name="detalleIds" value="${d.id}">
+                                    </td>
+                                    <td class="text-center"><strong>${d.cantidadSolicitada}</strong></td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">${d.cantidadRecibida}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark">${d.cantidadPendiente}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="number" 
+                                            class="form-control form-control-sm text-center" 
+                                            name="cantidadesRecibidas"
+                                            min="0" 
+                                            max="${d.cantidadPendiente}" 
+                                            value="0" 
+                                            style="width: 100px; display: inline-block;"
+                                            ${d.cantidadPendiente === 0 ? 'disabled' : ''}>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        `;
+    }
+
+    function guardarRecepcion() {
+        const form = document.getElementById('formRecepcion');
+        if (!form) return;
+        
+        const formData = new FormData(form);
+        const ordenId = formData.get('ordenId');
+        
+        // Validar que al menos se haya ingresado una cantidad
+        const cantidades = Array.from(formData.getAll('cantidadesRecibidas'));
+        const total = cantidades.reduce((sum, val) => sum + parseInt(val || 0), 0);
+        
+        if (total === 0) {
+            mostrarAlerta('Debe ingresar al menos una cantidad para recibir', 'warning');
+            return;
+        }
+        
+        // Deshabilitar botón
+        const btnGuardar = document.querySelector('[onclick="guardarRecepcion()"]');
+        if (btnGuardar) {
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        }
+        
+        fetch('/admin/ordenes-compra/api/actualizar-recepcion', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                mostrarAlerta(data.message, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modalRecepcion')).hide();
+                
+                // ✅ Actualizar la fila sin recargar toda la página
+                actualizarOrdenDespuesDeRecepcion(ordenId);
+                
+            } else {
+                mostrarAlerta(data.message, 'danger');
+                if (btnGuardar) {
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Recepción';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarAlerta('Error al guardar la recepción', 'danger');
+            if (btnGuardar) {
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Recepción';
+            }
+        });
+    }
+
+    function actualizarOrdenDespuesDeRecepcion(ordenId) {
+        fetch(`/admin/ordenes-compra/api/detalles/${ordenId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const orden = data.orden;
+                    const fila = document.querySelector(`tr[data-orden-id="${ordenId}"]`);
+                    
+                    if (fila) {
+                        // Actualizar estado y botones (pasando también la fecha)
+                        actualizarBotonesOrden(
+                            ordenId, 
+                            orden.estado, 
+                            orden.fechaEntregaReal
+                        );
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error al actualizar orden:', error);
+                setTimeout(() => location.reload(), 1000);
+            });
+    }
+    // ============================================================================
+    // FUNCIÓN PARA ACTUALIZAR BOTONES DINÁMICAMENTE
+    // ============================================================================
+    // ✅ CORRECTO: Declara los 3 parámetros
+    function actualizarBotonesOrden(ordenId, nuevoEstado, fechaEntregaReal = null) {
+        // Buscar la fila de la orden
+        const fila = document.querySelector(`tr[data-orden-id="${ordenId}"]`);
+        if (!fila) {
+            setTimeout(() => location.reload(), 1000);
+            return;
+        }
+        
+        // Buscar la celda de acciones (última columna)
+        const celdaAcciones = fila.querySelector('td:last-child');
+        if (!celdaAcciones) return;
+        
+        // Limpiar botones actuales
+        celdaAcciones.innerHTML = '';
+        
+        // Botón VER (siempre visible)
+        celdaAcciones.innerHTML += `
+            <button class="btn-accion btn-ver" 
+                    onclick="verDetalleOrden(${ordenId})"
+                    title="Ver detalles">
+                <i class="fas fa-eye"></i>
+            </button>
+        `;
+        
+        // Según el estado, agregar botones correspondientes
+        switch(nuevoEstado) {
+            case 'Pendiente':
+                celdaAcciones.innerHTML += `
+                    <button class="btn-accion btn-editar" 
+                            onclick="editarOrden(${ordenId})"
+                            title="Editar orden">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-accion btn-confirmar" 
+                            onclick="confirmarOrden(${ordenId})"
+                            title="Confirmar orden">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="btn-accion btn-cancelar" 
+                            onclick="cancelarOrden(${ordenId})"
+                            title="Cancelar orden">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                break;
+                
+            case 'Confirmada':
+                celdaAcciones.innerHTML += `
+                    <button class="btn-accion btn-recepcion" 
+                            onclick="gestionarRecepcion(${ordenId})"
+                            title="Gestionar recepción">
+                        <i class="fas fa-box"></i>
+                    </button>
+                `;
+                break;
+                
+            case 'RecepcionParcial':
+                celdaAcciones.innerHTML += `
+                    <button class="btn-accion btn-recepcion" 
+                            onclick="gestionarRecepcion(${ordenId})"
+                            title="Continuar recepción">
+                        <i class="fas fa-box-open"></i>
+                    </button>
+                `;
+                break;
+                
+            case 'Recibida':
+                celdaAcciones.innerHTML += `
+                    <span class="badge bg-success">
+                        <i class="fas fa-check-circle"></i> Completada
+                    </span>
+                `;
+                break;
+                
+            case 'Cancelada':
+                celdaAcciones.innerHTML += `
+                    <span class="badge bg-danger">
+                        <i class="fas fa-ban"></i> Cancelada
+                    </span>
+                `;
+                break;
+        }
+        
+        // Actualizar badge de estado
+        const celdaEstado = fila.querySelector('.badge-estado');
+        if (celdaEstado) {
+            celdaEstado.className = `badge-estado estado-${nuevoEstado}`;
+            
+            const estadosTexto = {
+                'Pendiente': 'Pendiente',
+                'Confirmada': 'Confirmada',
+                'RecepcionParcial': 'Recepción Parcial',
+                'Recibida': 'Recibida',
+                'Cancelada': 'Cancelada'
+            };
+            
+            celdaEstado.textContent = estadosTexto[nuevoEstado] || nuevoEstado;
+        }
+
+        // ✅ Actualizar fecha de entrega real si existe
+        if (nuevoEstado === 'Recibida' && fechaEntregaReal) {
+            const celdaFechaReal = fila.querySelector('.fecha-entrega-real');
+            if (celdaFechaReal) {
+                celdaFechaReal.classList.add('text-success');
+                celdaFechaReal.innerHTML = `<i class="fas fa-calendar-check"></i> ${fechaEntregaReal}`;
+            }
+        }
+    }
+    // Función auxiliar para mostrar alertas
+    function mostrarAlerta(mensaje, tipo) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+        alertDiv.style.zIndex = '9999';
+        alertDiv.style.minWidth = '300px';
+        alertDiv.innerHTML = `
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 3000);
+    }
+    // Función para editar orden (con validación y modal)
+    function editarOrden(id) {
+        Swal.fire({
+            title: 'Editar Orden de Compra',
+            html: `
+                <div class="text-start">
+                    <p class="mb-3">Esta acción permite modificar campos limitados de la orden:</p>
+                    <ul class="text-muted small">
+                        <li>Almacén de destino</li>
+                        <li>Fecha de entrega esperada</li>
+                    </ul>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Nota:</strong> No se pueden modificar productos, cantidades ni precios.
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-edit"></i> Continuar',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                abrirModalEdicionSimple(id);
+            }
+        });
+    }
+
+    function abrirModalEdicionSimple(id) {
+        Swal.fire({
+            title: 'Cargando...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Cargar datos actuales de la orden
+        fetch(`/admin/ordenes-compra/api/detalles/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.close();
+                    mostrarFormularioEdicion(data.orden, id);
+                } else {
+                    Swal.fire('Error', data.message || 'Error al cargar la orden', 'error');
+                }
+            })
+            .catch(error => {
+                Swal.fire('Error', 'Error al cargar los datos', 'error');
+                console.error('Error:', error);
+            });
+    }
+
+    function mostrarFormularioEdicion(orden, id) {
+        Swal.fire({
+            title: 'Editar Orden ' + orden.numeroOrden,
+            html: `
+                <form id="formEdicionSimple" class="text-start">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar-alt"></i> Fecha Entrega Esperada
+                        </label>
+                        <input type="date" class="form-control" id="fechaEntrega" 
+                            value="${orden.fechaEntregaEsperada || ''}"
+                            min="${new Date().toISOString().split('T')[0]}">
+                        <small class="text-muted">Debe ser una fecha futura</small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <strong>Estado actual:</strong> ${orden.estadoTexto}<br>
+                        <strong>Proveedor:</strong> ${orden.proveedor}<br>
+                        <strong>Almacén actual:</strong> ${orden.almacen}
+                    </div>
+                </form>
+            `,
+            width: '500px',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-save"></i> Guardar Cambios',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#6c757d',
+            preConfirm: () => {
+                const fechaEntrega = document.getElementById('fechaEntrega').value;
+                
+                if (!fechaEntrega) {
+                    Swal.showValidationMessage('Debe seleccionar una fecha de entrega');
+                    return false;
+                }
+                
+                return {
+                    fechaEntregaEsperada: fechaEntrega
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                guardarEdicionSimple(id, result.value);
+            }
+        });
+    }
+
+    function guardarEdicionSimple(id, datos) {
+        Swal.fire({
+            title: 'Guardando...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        const formData = new FormData();
+        formData.append('fechaEntregaEsperada', datos.fechaEntregaEsperada);
+        
+        fetch(`/admin/ordenes-compra/actualizar-simple/${id}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: data.message,
+                    confirmButtonColor: '#198754'
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message,
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al guardar los cambios',
+                confirmButtonColor: '#dc3545'
+            });
+            console.error('Error:', error);
+        });
+    }
+
+    function nuevaOrden() {
+        // 1. Resetear variables de detalle
+        detallesOrden = [];
+        contadorDetalles = 0;
+        
+        // 2. Inicializar el modal (ID 'ordenModal' verificado en el HTML)
+        const modalElement = document.getElementById('ordenModal');
+        if (!modalElement) {
+            console.error("Error: El modal con ID 'ordenModal' no fue encontrado. Verifique la carga del HTML.");
+            // Si el modal no existe, detenemos la función.
+            return; 
+        }
+        const modal = new bootstrap.Modal(modalElement);
+        
+        // 3. Resetear y configurar campos
+        
+        // 💥 CORRECCIÓN: Usar el ID del formulario de tu HTML: 'formOrdenCompra'
+        const formulario = document.getElementById('formOrdenCompra');
+        if (formulario) {
+            formulario.reset();
+        } else {
+            console.warn("Advertencia: No se encontró el formulario con el ID 'formOrdenCompra'. No se pudo resetear.");
+        }
+        
+        // Asumiendo que 'idOrdenesField' es un campo oculto para el ID de la OC (si existe)
+        // El HTML proporcionado no lo tiene, pero lo mantenemos si lo tienes fuera de ese bloque.
+        const idField = document.getElementById('idOrdenesField');
+        if (idField) idField.value = '0'; 
+
+        // El HTML usa <h5 class="modal-title">, no tiene un ID. Lo dejamos estático
+        // o puedes agregar el ID 'ordenModalLabel' a tu <h5> para poder actualizarlo.
+        // document.getElementById('ordenModalLabel').textContent = 'Nueva Orden de Compra';
+
+        // Asumiendo que 'formAlerts' es un contenedor de alertas (si existe)
+        const alertsContainer = document.getElementById('formAlerts');
+        if (alertsContainer) alertsContainer.innerHTML = '';
+        
+        // 4. Resetear la tabla de detalles
+        const detallesBody = document.getElementById('detallesBody');
+        if (detallesBody) {
+            // La tabla detallesBody no está presente en tu HTML. Asumo que está dentro de #contenedorDetalles
+            // Si el tbody no existe, esta línea fallará, pero la dejamos por si existe en tu tabla.
+            detallesBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Use el botón "Agregar Item" para empezar.</td></tr>';
+        }
+        
+        // 5. Recalcular totales iniciales (debe ser 'actualizarTotalesOrden()' o 'recalcularTotales()')
+        actualizarTotalesOrden(); // Dejaré el nombre que usaste.
+        
+        // 6. Cargar datos para los selects (Proveedor y Almacén)
+        fetch('/admin/ordenes-compra/api/filtros')
+            .then(response => response.json())
+            .then(data => {
+                const selectProv = document.getElementById('idProveedor');
+                const selectAlm = document.getElementById('idAlmacen');
+                
+                // Llenado de Proveedores
+                if (selectProv) {
+                    selectProv.innerHTML = '<option value="">Seleccione un proveedor...</option>';
+                    if (data.success && data.proveedores) {
+                        data.proveedores.forEach(p => {
+                            selectProv.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
+                        });
+                    }
+                }
+                
+                // Llenado de Almacenes
+                if (selectAlm) {
+                    selectAlm.innerHTML = '<option value="">Seleccione un almacén...</option>';
+                    if (data.success && data.almacenes) {
+                        data.almacenes.forEach(a => {
+                            selectAlm.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar datos de filtros:', error);
+                // Asegúrate de que 'mostrarAlerta' esté definido globalmente
+                if (typeof mostrarAlerta === 'function') {
+                    mostrarAlerta('Error al cargar proveedores y almacenes', 'danger');
+                }
+            });
+        
+        // 7. Mostrar el modal
+        modal.show();
+    }
+    function abrirModalAgregarItem() {
+        // ⚠️ Importante: Si la orden ya tiene un proveedor seleccionado, aquí deberías
+        // obtener el ID del proveedor y usarlo para filtrar los ítems cargados en cargarItemsPorTipo().
+        
+        // Resetear el formulario y los displays
+        document.getElementById('formAgregarItem').reset();
+        document.getElementById('itemSeleccionado').innerHTML = '<option value="">Primero seleccione el tipo...</option>';
+        document.getElementById('itemSeleccionado').disabled = true;
+        document.getElementById('infoItem').style.display = 'none';
+        document.getElementById('subtotalLineaDisplay').textContent = '0.00';
+        
+        // Muestra el modal de Bootstrap
+        var modal = new bootstrap.Modal(document.getElementById('modalAgregarItem'));
+        modal.show();
+    }
+    function cargarDatosItem(valorSeleccionado) {
+        const itemSelect = document.getElementById('itemSeleccionado');
+        const valor = valorSeleccionado || itemSelect.value;
+        const infoDiv = document.getElementById('infoItem');
+        const detallesDiv = document.getElementById('detallesItemSeleccionado');
+
+        // Ocultar información si no hay selección válida
+        if (!valor) {
+            infoDiv.style.display = 'none';
+            document.getElementById('precioUnitarioItem').value = 0;
+            return;
+        }
+
+        // El valor es una cadena como "producto-15" o "suministro-5"
+        const [tipo, idString] = valor.split('-');
+        const id = parseInt(idString, 10);
+
+        // Buscar el ítem en la lista cargada previamente
+        const itemEncontrado = itemsDisponibles.find(item => 
+            (item.tipo === tipo) && (item.id === id)
+        );
+
+        if (itemEncontrado) {
+            // --- 1. Determinar el Precio (Esto está bien, busca precioVenta/precioCompra) ---
+            let precioBase = 0; 
+            if (tipo === 'producto') {
+                precioBase = itemEncontrado.precioVenta ?? 0;
+            } else if (tipo === 'suministro') {
+                precioBase = itemEncontrado.precioCompra ?? 0;
+            }
+            
+            const precioUnitario = parseFloat(precioBase) || 0; 
+
+            
+            // --- 2. Mostrar la información del ítem (Alineado con el backend) ---
+            let detallesHTML = `
+                <p class="mb-1"><strong>Código:</strong> ${itemEncontrado.codigo}</p>
+                <p class="mb-1"><strong>Nombre:</strong> ${itemEncontrado.nombre}</p>
+                <p class="mb-1"><strong>Tipo:</strong> ${itemEncontrado.tipo.toUpperCase()}</p>
+            `;
+            
+            // Agregar detalles específicos del Producto/Suministro
+            if (tipo === 'producto') {
+                const precioVentaDisplay = (itemEncontrado.precioVenta ?? 0).toFixed(4);
+                // 💡 Se espera que el backend haya mapeado 'DescripcionProducto' a 'descripcion'
+                detallesHTML += `<p class="mb-1"><strong>Descripción:</strong> ${itemEncontrado.descripcion || 'N/A'}</p>`;
+                detallesHTML += `<p class="mb-1"><strong>Precio de Venta:</strong> S/. ${precioVentaDisplay}</p>`;
+            } else if (tipo === 'suministro') {
+                const precioCompraDisplay = (itemEncontrado.precioCompra ?? 0).toFixed(4);
+                // 💡 Se espera que el backend haya mapeado 'LoteActual' a 'loteActual'
+                detallesHTML += `<p class="mb-1"><strong>Lote Actual:</strong> ${itemEncontrado.loteActual || 'N/A'}</p>`;
+                detallesHTML += `<p class="mb-1"><strong>Precio de Compra:</strong> S/. ${precioCompraDisplay}</p>`;
+            }
+            
+            detallesDiv.innerHTML = detallesHTML;
+            infoDiv.style.display = 'block';
+
+            // --- 3. Cargar el Precio Unitario en el input ---
+            document.getElementById('precioUnitarioItem').value = precioUnitario.toFixed(2);
+            
+            // --- 4. Recalcular ---
+            calcularSubtotalItem(); 
+            
+        } else {
+            // Ítem no encontrado
+            detallesDiv.innerHTML = '<p>No se encontraron detalles para el ítem seleccionado.</p>';
+            infoDiv.style.display = 'block';
+            document.getElementById('precioUnitarioItem').value = 0;
+            calcularSubtotalItem(); 
+        }
+    }
+
+    /**
+    * 3. Muestra los datos del ítem seleccionado (precio y otra info).
+    */
+    function cargarItemsPorTipo() {
+        const tipo = document.getElementById('tipoItem').value;
+        const itemSelect = document.getElementById('itemSeleccionado');
+        const proveedorId = obtenerProveedorActual(); // Función que obtiene el ID del proveedor actual
+
+        // Resetear el select al iniciar la carga
+        itemSelect.innerHTML = '<option value="">Cargando...</option>';
+        itemSelect.disabled = true;
+        itemsDisponibles = [];
+        
+        if (tipo === "") {
+            itemSelect.innerHTML = '<option value="">Primero seleccione el tipo...</option>';
+            return;
+        }
+        
+        // Construcción de la URL (ajustada a tus endpoints de Spring)
+        let url = `/admin/ordenes-compra/api/${tipo}s`; 
+        
+        // Si tienes un proveedor seleccionado, usa el endpoint filtrado
+        if (proveedorId && proveedorId !== '' && proveedorId !== '0') {
+            url = `/admin/ordenes-compra/api/${tipo}s/proveedor/${proveedorId}`;
+        }
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                itemsDisponibles = data;
+                itemSelect.innerHTML = '<option value="">Seleccione un ítem...</option>';
+                
+                if (data.length === 0) {
+                    itemSelect.innerHTML = '<option value="">No hay ítems disponibles.</option>';
+                } else {
+                    data.forEach(item => {
+                        itemSelect.innerHTML += `<option value="${item.tipo}-${item.id}">${item.nombre} (${item.codigo})</option>`;
+                    });
+                }
+                // ⭐️ ÉXITO: Desbloquear el select aquí
+                itemSelect.disabled = false; 
+            })
+            .catch(error => {
+                console.error("Error en cargarItemsPorTipo:", error);
+                itemSelect.innerHTML = '<option value="">Error al cargar (Revise la Consola)</option>';
+                // ⭐️ FRACASO: Desbloquear el select para que el usuario pueda volver a intentarlo o ver el error
+                itemSelect.disabled = false; 
+                alert('Error al cargar la lista de ítems. Verifique la conexión o el backend.');
+            });
+    }
+    /**
+    * Función CLAVE: Obtiene el ID del proveedor del formulario principal.
+    * ¡Asegúrate de que el ID 'idProveedor' exista en tu HTML principal!
+    */
+    function obtenerProveedorActual() {
+        const proveedorInput = document.getElementById('idProveedor');
+        if (proveedorInput) {
+            // Devuelve el valor, que debe ser un ID numérico o una cadena vacía/nula
+            return proveedorInput.value; 
+        }
+        // Si no encuentra el campo, devuelve null
+        return null; 
+    }
+
+    function actualizarTotalesOrden() {
+        // CRÍTICO: Asegúrate de que 'detallesOrden' esté definida globalmente.
+        if (typeof detallesOrden === 'undefined') {
+            console.error("La variable global 'detallesOrden' no está definida.");
+            return;
+        }
+
+        // 1. Calcular Subtotal General
+        // Sumamos el campo 'subtotal' de cada línea, que ya incluye P.Unitario, Descuentos e Impuestos unitarios.
+        let subtotalGeneral = detallesOrden.reduce((sum, item) => sum + item.subtotal, 0);
+
+        // 2. Obtener Descuentos Globales (leídos del INPUT)
+        // Usamos el ID 'descuentosGlobales' de tu HTML.
+        const descuentosGlobalesInput = document.getElementById('descuentosGlobales');
+        // Leemos el valor y aseguramos que sea un número flotante (si es null/undefined, usamos 0)
+        const descuentosGlobales = parseFloat(descuentosGlobalesInput?.value || 0) || 0;
+        
+        // 3. Calcular Impuestos (IGV 18%)
+        // El IGV se calcula sobre el subtotal general.
+        const impuestosCalculados = subtotalGeneral * TASA_IGV;
+        
+        // 4. Calcular el Total Final
+        const totalFinal = subtotalGeneral + impuestosCalculados - descuentosGlobales;
+        
+        // 5. Actualizar los DISPLAYS (los <span>) usando los IDs de tu HTML:
+        
+        // Subtotal
+        document.getElementById('displaySubtotal').textContent = subtotalGeneral.toFixed(2);
+        
+        // Descuentos (Globales)
+        document.getElementById('displayDescuentos').textContent = descuentosGlobales.toFixed(2);
+        
+        // Impuestos
+        document.getElementById('displayImpuestos').textContent = impuestosCalculados.toFixed(2);
+        
+        // Total Final
+        document.getElementById('displayTotal').textContent = totalFinal.toFixed(2);
+
+        // 6. (Opcional) Si la función está causando problemas al calcular, revisa los inputs ocultos
+        // para enviar los datos al servidor. Si existen, asegúrate de actualizarlos aquí.
+    }
+
+
+    function recalcularTotales() {
+        actualizarTotalesOrden();
+    }
+
+    function guardarOrdenCompra() {
+        const form = document.getElementById('formOrdenCompra'); 
+        const btn = document.getElementById('btnGuardarOrden');
+        const alertsDiv = document.getElementById('formAlerts'); 
+        
+        if (!btn || !form) {
+            console.error("Error: Componentes del formulario no encontrados.");
+            return; 
+        }
+        
+        // 1. Validación de campos de cabecera
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            if (alertsDiv) {
+                alertsDiv.innerHTML = `<div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Por favor, complete todos los campos obligatorios.
+                </div>`;
+            }
+            return; 
+        }
+        
+        // 2. Validación de detalles
+        if (typeof detallesOrden === 'undefined' || detallesOrden.length === 0) {
+            if (alertsDiv) {
+                alertsDiv.innerHTML = `<div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Debe agregar al menos un ítem al detalle de la orden antes de guardar.
+                </div>`;
+            }
+            return;
+        }
+        
+        if (alertsDiv) alertsDiv.innerHTML = ''; 
+
+        const formData = new FormData(form);
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
+
+        // ⭐ AGREGAR LOS TOTALES CALCULADOS AL FormData
+        // Leer los valores de los displays
+        const subtotal = parseFloat(document.getElementById('displaySubtotal').textContent) || 0;
+        const descuentos = parseFloat(document.getElementById('displayDescuentos').textContent) || 0;
+        const impuestos = parseFloat(document.getElementById('displayImpuestos').textContent) || 0;
+        
+        formData.append('montoSubtotal', subtotal.toFixed(4));
+        formData.append('descuentos', descuentos.toFixed(4));
+        formData.append('impuestos', impuestos.toFixed(4));
+        formData.append('detallesJSON', JSON.stringify(detallesOrden));
+        
+        // 3. Petición FETCH
+        fetch(form.action, { 
+            method: 'POST',
+            body: formData 
+        })
+        .then(response => {
+            if (response.ok) return response.json();
+            throw new Error('Respuesta del servidor no válida. Estado HTTP: ' + response.status);
+        })
+        .then(data => {
+            if (alertsDiv) {
+                if (data.status === 'success') {
+                    alertsDiv.innerHTML = `<div class="alert alert-success" role="alert"><i class="fas fa-check-circle me-2"></i>${data.message}</div>`;
+                    
+                    setTimeout(() => {
+                        const modalElement = document.getElementById('ordenModal'); 
+                        if (modalElement) bootstrap.Modal.getInstance(modalElement).hide();
+                        location.reload();
+                    }, 1500);
+                } else {
+                    alertsDiv.innerHTML = `<div class="alert alert-danger" role="alert"><i class="fas fa-exclamation-circle me-2"></i>${data.message}</div>`;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (alertsDiv) {
+                alertsDiv.innerHTML = `<div class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle me-2"></i>Error del sistema: ${error.message}</div>`;
+            }
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save me-1"></i>Guardar Orden';
+        });
+    }
+
+    function limpiarEstadoOrden() {
+        console.log("Ejecutando limpieza de estado...");
+
+        // 1. Resetear variables globales (CRÍTICO: Borra los datos)
+        if (typeof detallesOrden !== 'undefined') {
+            detallesOrden = []; 
+        }
+        
+        // 2. Resetear la tabla de detalles en la interfaz
+        const detallesBody = document.getElementById('detallesBody');
+        const contenedorDetalles = document.getElementById('contenedorDetalles'); // 💡 Nuevo: Referencia al div contenedor
+        
+        if (detallesBody) {
+            // Opción A: Si la tabla aún existe (la forma más limpia si estuviera estática)
+            detallesBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Use el botón "Agregar Item" para empezar.</td></tr>'; 
+        } else if (contenedorDetalles) {
+            // 💡 Opción B: Si la tabla fue reemplazada (como lo indica tu HTML actual), 
+            // limpiamos el contenedor y reinsertamos el mensaje inicial.
+            contenedorDetalles.innerHTML = `
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No hay ítems agregados. Use el botón "Agregar Ítem" para comenzar.
+                </div>`;
+        }
+        
+        // 3. Resetear totales
+        if (typeof actualizarTotalesOrden === 'function') {
+            actualizarTotalesOrden(); 
+        }
+        
+        // 4. Limpiar alertas y resetear formulario
+        const alertsContainer = document.getElementById('formAlerts');
+        if (alertsContainer) alertsContainer.innerHTML = '';
+        
+        const formulario = document.getElementById('formOrdenCompra');
+        if (formulario) formulario.reset();
+    }
+    /**
+    * Elimina un ítem de los detalles de la orden por su ID temporal.
+    * @param {number} tempId - El ID temporal del detalle a eliminar.
+    */
+    function eliminarItemDetalle(tempId) {
+        if (confirm('¿Está seguro de que desea eliminar este ítem del detalle?')) {
+            // Filtra la lista, manteniendo solo los elementos cuyo tempId NO coincida
+            detallesOrden = detallesOrden.filter(detalle => detalle.tempId !== tempId);
+            
+            // Repinta la tabla de detalles con la lista actualizada
+            actualizarTablaDetalles();
+            
+            // Recalcula los totales de la cabecera
+            actualizarTotalesOrden(); 
+        }
+    }
+    /**
+    * Calcula el subtotal de la línea de detalle.
+    * Debe ser llamada por los eventos onchange de Cantidad, Precio Unitario, Descuento, e Impuesto.
+    */
+    function calcularSubtotalItem() {
+        // Usamos || 0 para manejar casos donde el campo esté vacío (se convierte a NaN), forzándolo a 0.
+        const cantidad = parseFloat(document.getElementById('cantidadItem').value) || 0;
+        const precio = parseFloat(document.getElementById('precioUnitarioItem').value) || 0;
+        const descuento = parseFloat(document.getElementById('descuentoUnitarioItem').value) || 0;
+        const impuesto = parseFloat(document.getElementById('impuestoUnitarioItem').value) || 0;
+
+        // Fórmula: (Precio - Descuento + Impuesto) * Cantidad
+        const subtotalUnitarioNeto = precio - descuento + impuesto;
+        const subtotalLinea = subtotalUnitarioNeto * cantidad;
+
+        // Actualiza el display del subtotal de línea
+        document.getElementById('subtotalLineaDisplay').textContent = subtotalLinea.toFixed(2);
+    }
+    /**
+    * 5. Agrega el ítem del modal a la estructura de datos y a la vista (tabla).
+    */
+    /**
+    * Agrega el ítem del modal a la estructura de datos global (detallesOrden) y actualiza la tabla.
+    */
+    function agregarItemADetalle() {
+        // 1. **VALIDACIÓN:** Asegura que el formulario sea válido.
+        const form = document.getElementById('formAgregarItem');
+        if (!form) {
+            console.error("Error: No se encontró el formulario con ID 'formAgregarItem'.");
+            return; 
+        }
+        if (!form.checkValidity()) {
+            form.reportValidity(); // Muestra los errores de HTML5
+            return;
+        }
+        
+        // 2. Obtiene el valor seleccionado del dropdown
+        const seleccion = document.getElementById('itemSeleccionado').value;
+        
+        // CRÍTICO: Verifica que se haya seleccionado un valor válido (ej: 'producto-123')
+        if (seleccion === "" || seleccion.indexOf('-') === -1) {
+            alert("Por favor, seleccione un ítem válido de la lista.");
+            return;
+        }
+
+        const [tipo, id] = seleccion.split('-');
+        
+        // 3. BUSCAR EL ÍTEM BASE EN LA LISTA GLOBAL
+        // CRÍTICO: Asegúrate que 'itemsDisponibles' no está vacío y el ID/tipo coinciden.
+        const itemBase = itemsDisponibles.find(i => 
+            i.tipo === tipo && i.id.toString() === id
+        );
+        
+        if (!itemBase) {
+            alert("Error: No se encontró la información completa del ítem seleccionado. Recargue los ítems.");
+            console.error("No se encontró el ítem en itemsDisponibles:", {tipo, id, itemsDisponibles});
+            return; // Detiene la función si el ítem no está en la caché
+        }
+        
+        // 4. Crear el objeto detalle
+        const nuevoDetalle = {
+            tempId: Date.now(), 
+            idItem: parseInt(id),
+            tipoItem: tipo,
+            codigo: itemBase.codigo,
+            nombre: itemBase.nombre,
+            
+            // Convertir los valores de input a flotantes (números)
+            cantidad: parseFloat(document.getElementById('cantidadItem').value) || 0,
+            precioUnitario: parseFloat(document.getElementById('precioUnitarioItem').value) || 0,
+            descuentoUnitario: parseFloat(document.getElementById('descuentoUnitarioItem').value) || 0,
+            impuestoUnitario: parseFloat(document.getElementById('impuestoUnitarioItem').value) || 0,
+            
+            // Usar el subtotal que ya fue calculado y mostrado
+            subtotal: parseFloat(document.getElementById('subtotalLineaDisplay').textContent) || 0
+        };
+
+        // 5. Agregar a la lista y actualizar la interfaz
+        detallesOrden.push(nuevoDetalle);
+        actualizarTablaDetalles();
+        actualizarTotalesOrden();
+        
+        // 6. Cerrar el modal
+        var modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarItem'));
+        if (modal) {
+            modal.hide();
+        }
+    }
+    // ============================================================================
+    // OTRAS FUNCIONES
+    // ============================================================================
+    function exportarExcelOrdenActual() {
+        if (!ordenActualId) {
+            mostrarAlerta('No hay una orden seleccionada', 'warning');
+            return;
+        }
+        
+        const url = `/admin/ordenes-compra/exportar/excel/${ordenActualId}`;
+        window.open(url, '_blank');
+        mostrarAlerta('Generando archivo Excel...', 'info');
+    }
+
+    function ordenarPor(columna) {
+        if (ordenActual === columna) {
+            direccionActual = direccionActual === 'asc' ? 'desc' : 'asc';
+        } else {
+            ordenActual = columna;
+            direccionActual = 'asc';
+        }
+        buscarOrdenes();
+    }
+
+    function limpiarFiltros() {
+        filtrosActivos = {
+            proveedor: null,
+            almacen: null,
+            estado: null,
+            fechaInicio: null,
+            fechaFin: null
+        };
+        
+        const contenedor = document.getElementById('filtrosActivos');
+        contenedor.innerHTML = '';
+        aplicarFiltros();
+    }
+
+    function refrescarDatos() {
+        buscarOrdenes();
+    }
+
+    // ============================================================================
+    // UTILIDADES
+    // ============================================================================
+    function mostrarAlerta(mensaje, tipo = 'info') {
+        let contenedorAlertas = document.getElementById('contenedorAlertas');
+        if (!contenedorAlertas) {
+            contenedorAlertas = document.createElement('div');
+            contenedorAlertas.id = 'contenedorAlertas';
+            contenedorAlertas.style.position = 'fixed';
+            contenedorAlertas.style.top = '20px';
+            contenedorAlertas.style.right = '20px';
+            contenedorAlertas.style.zIndex = '9999';
+            document.body.appendChild(contenedorAlertas);
+        }
+        
+        const alerta = document.createElement('div');
+        alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alerta.style.minWidth = '300px';
+        alerta.innerHTML = `
+            <i class="fas fa-${tipo === 'success' ? 'check-circle' : 
+                            tipo === 'danger' ? 'exclamation-triangle' : 
+                            tipo === 'warning' ? 'exclamation-triangle' : 
+                            'info-circle'} me-2"></i>
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        contenedorAlertas.appendChild(alerta);
+        
+        setTimeout(() => {
+            if (alerta && alerta.parentNode) {
+                alerta.remove();
+            }
+        }, 5000);
+    }
+
+    function formatearFecha(fecha) {
+        if (!fecha) return '';
+        
+        let fechaObj;
+
+        // Caso A: La fecha ya viene del API como "dd/MM/yyyy" (lo más probable en tu sistema)
+        if (typeof fecha === 'string' && fecha.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+            // Parsear DD/MM/YYYY manualmente para evitar inconsistencias de new Date()
+            const partes = fecha.split('/');
+            // Date constructor: YYYY, MM (0-indexed), DD
+            fechaObj = new Date(partes[2], partes[1] - 1, partes[0]); 
+        
+        // Caso B: Otros formatos (como YYYY-MM-DD en la carga inicial)
+        } else if (typeof fecha === 'string') {
+            fechaObj = new Date(fecha + 'T00:00:00'); 
+        } else {
+            // Fallback para otros tipos de datos
+            return ''; 
+        }
+
+        // Validación para NaN
+        if (isNaN(fechaObj.getTime())) return ''; 
+
+        const dia = String(fechaObj.getDate()).padStart(2, '0');
+        const mes = String(fechaObj.getMonth() + 1).padStart(2, '0');
+        const anio = fechaObj.getFullYear();
+        return `${dia}/${mes}/${anio}`;
+    }
+
+    function formatearNumero(valor) {
+        return new Intl.NumberFormat('es-PE', { 
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2 
+        }).format(valor);
+    }
+
+    function formatearMoneda(valor) {
+        return new Intl.NumberFormat('es-PE', {
+            style: 'currency',
+            currency: 'PEN',
+            minimumFractionDigits: 2
+        }).format(valor);
+    }
+
+    // ============================================================================
+    // EVENTOS GLOBALES DEL TECLADO
+    // ============================================================================
+    document.addEventListener('keydown', function(e) {
+        // Escape para cerrar modales
+        if (e.key === 'Escape') {
+            const modalesAbiertos = document.querySelectorAll('.modal.show');
+            modalesAbiertos.forEach(modal => {
+                const modalInstance = bootstrap.Modal.getInstance(modal);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            });
+        }
+        
+        // Ctrl+F para enfocar filtros
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            const selector = document.getElementById('filtroSelector');
+            if (selector) selector.focus();
+        }
+        
+        // F5 para refrescar datos (sin recargar página)
+        if (e.key === 'F5' && !e.ctrlKey) {
+            e.preventDefault();
+            refrescarDatos();
+        }
+    });
+
+    // ============================================================================
+    // TOOLTIPS DE BOOTSTRAP
+    // ============================================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const botonesSinTexto = document.querySelectorAll('[title]');
+        botonesSinTexto.forEach(boton => {
+            new bootstrap.Tooltip(boton);
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        // ID del modal principal de registro
+        const ordenModalElement = document.getElementById('ordenModal');
+        
+        if (ordenModalElement) {
+            // Vincula la función limpiarEstadoOrden al evento 'hidden.bs.modal'
+            // Este evento se dispara DESPUÉS de que el modal ha terminado de ocultarse.
+            ordenModalElement.addEventListener('hidden.bs.modal', function () {
+                // Llama a la función de limpieza
+                limpiarEstadoOrden();
+            });
+        }
+    });
+</script>
+</body>
+</html>

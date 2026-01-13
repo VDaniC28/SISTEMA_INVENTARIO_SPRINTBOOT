@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoreo y Auditoría - SisInven</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
+    <!-- ======== STYLE MADRE + HIJA ======== -->
+    <style>
+        /* ======== MADRE ======== */
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f2f6ff;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 10px;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .sidebar img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logout-btn i {
+            margin-right: 5px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* ======== HIJA ======== */
+        :root {
+            --primary-color: #6d3c7c;
+            --secondary-color: #6d3c7c;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --info-color: #16a085;
+            --light-bg: #ecf0f1;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .header-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .header-section h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-section p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card.primary { border-left-color: var(--primary-color); }
+        .stat-card.success { border-left-color: var(--success-color); }
+        .stat-card.danger { border-left-color: var(--danger-color); }
+        .stat-card.warning { border-left-color: var(--warning-color); }
+        .stat-card.info { border-left-color: var(--info-color); }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.2;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 5px 0 0 0;
+        }
+
+        .filters-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+        }
+
+        .filter-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-custom {
+            border-radius: 10px;
+            padding: 6px 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .btn-secondary-custom {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-export {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+        }
+
+        .table thead th {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            padding: 15px 10px;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .badge-custom {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-insert { background: var(--success-color); color: white; }
+        .badge-update { background: var(--warning-color); color: white; }
+        .badge-delete { background: var(--danger-color); color: white; }
+        .badge-login { background: var(--info-color); color: white; }
+        .badge-logout { background: #95a5a6; color: white; }
+        .badge-export { background: #9b59b6; color: white; }
+        .badge-import { background: #1abc9c; color: white; }
+
+        .btn-action {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-view {
+            background: var(--info-color);
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #138d75;
+            transform: scale(1.1);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .detail-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            min-width: 180px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-value {
+            flex: 1;
+            color: #555;
+        }
+
+        .json-viewer {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 2px solid #e0e0e0;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #bdc3c7;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #7f8c8d;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #95a5a6;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 15px;
+                border-radius: 15px;
+            }
+            .header-section h1 { font-size: 1.5rem; }
+            .stats-container { grid-template-columns: 1fr; }
+            .table-container { padding: 15px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div>
+            <a href="/admin/vistaAdmin">
+                <img src="/images/Logo.png" alt="Logo">
+            </a>
+            <h2>SISTEMA INVENTARIO</h2>
+        </div>
+        <form action="/logout" method="post">
+            <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+        </form>
+    </div>
+
+<div class="main">
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1>
+                <i class="fas fa-shield-alt"></i>
+                Sistema de Monitoreo y Auditoría
+            </h1>
+            <p>
+                <i class="fas fa-info-circle"></i>
+                Registro completo de todas las actividades del sistema
+            </p>
+        </div>
+        
+        <!-- Statistics Section -->
+        <div class="stats-container">
+            <div class="stat-card primary">
+                <i class="fas fa-database stat-icon"></i>
+                <h2 class="stat-value" id="totalRegistros">0</h2>
+                <p class="stat-label">Total Registros</p>
+            </div>
+            <div class="stat-card success">
+                <i class="fas fa-plus-circle stat-icon"></i>
+                <h2 class="stat-value" id="totalInserts">0</h2>
+                <p class="stat-label">Inserciones</p>
+            </div>
+            <div class="stat-card warning">
+                <i class="fas fa-edit stat-icon"></i>
+                <h2 class="stat-value" id="totalUpdates">0</h2>
+                <p class="stat-label">Actualizaciones</p>
+            </div>
+            <div class="stat-card danger">
+                <i class="fas fa-trash-alt stat-icon"></i>
+                <h2 class="stat-value" id="totalDeletes">0</h2>
+                <p class="stat-label">Eliminaciones</p>
+            </div>
+            <div class="stat-card info">
+                <i class="fas fa-sign-in-alt stat-icon"></i>
+                <h2 class="stat-value" id="totalLogins">0</h2>
+                <p class="stat-label">Inicios de Sesión</p>
+            </div>
+        </div>
+        
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="filter-title">
+                <i class="fas fa-filter"></i>
+                Filtros de Búsqueda Avanzada
+            </div>
+            
+            <form id="filterForm">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> ID Usuario
+                        </label>
+                        <input type="number" class="form-control" id="filtroUsuario" placeholder="Ej: 1">
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-cog"></i> Tipo de Acción
+                        </label>
+                        <select class="form-select" id="filtroTipoAccion">
+                            <option value="">Todas</option>
+                            <option value="INSERT">INSERT</option>
+                            <option value="UPDATE">UPDATE</option>
+                            <option value="DELETE">DELETE</option>
+                            <option value="LOGIN">LOGIN</option>
+                            <option value="LOGOUT">LOGOUT</option>
+                            <option value="EXPORT">EXPORT</option>
+                            <option value="IMPORT">IMPORT</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-table"></i> Tabla
+                        </label>
+                        <input type="text" class="form-control" id="filtroTabla" placeholder="Nombre de tabla">
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Fecha Inicio
+                        </label>
+                        <input type="datetime-local" class="form-control" id="filtroFechaInicio">
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-check"></i> Fecha Fin
+                        </label>
+                        <input type="datetime-local" class="form-control" id="filtroFechaFin">
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-sort"></i> Ordenar Por
+                        </label>
+                        <select class="form-select" id="sortBy">
+                            <option value="fechaAccion">Fecha</option>
+                            <option value="idUsuario">Usuario</option>
+                            <option value="tipoAccion">Tipo Acción</option>
+                            <option value="nombreTabla">Tabla</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-arrow-down"></i> Dirección
+                        </label>
+                        <select class="form-select" id="direction">
+                            <option value="desc">Descendente</option>
+                            <option value="asc">Ascendente</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-list-ol"></i> Registros por Página
+                        </label>
+                        <select class="form-select" id="pageSize">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-custom btn-primary-custom flex-fill">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                        <button type="button" class="btn btn-custom btn-secondary-custom" onclick="limpiarFiltros()">
+                            <i class="fas fa-redo"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Registros de Auditoría
+            </h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-custom btn-export" onclick="exportarExcel()">
+                    <i class="fas fa-file-excel"></i> Exportar Excel
+                </button>
+                <button class="btn btn-custom btn-export" onclick="exportarPDF()">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                </button>
+            </div>
+        </div>
+        
+        <!-- Table Section -->
+        <div class="table-container">
+            <table id="tablaAuditoria" class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                        <th>Tabla</th>
+                        <th>Registro</th>
+                        <th>Descripción</th>
+                        <th>IP</th>
+                        <th>Fecha</th>
+                        <th style="width: 80px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaBody">
+                    <!-- Data loaded via JavaScript -->
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div id="paginationInfo" class="text-muted">
+                    Mostrando 0 - 0 de 0 registros
+                </div>
+                <nav>
+                    <ul class="pagination mb-0" id="pagination">
+                        <!-- Pagination buttons loaded via JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Detalle -->
+    <div class="modal fade" id="modalDetalle" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-eye"></i> Detalle de Auditoría
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="detalleContent">
+                        <!-- Content loaded dynamically -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <!-- Bootstrap 5 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        let currentPage = 0;
+        let pageSize = 25;
+        let totalPages = 0;
+        let totalElements = 0;
+        
+        // Inicializar al cargar la página
+        $(document).ready(function() {
+            cargarEstadisticas();
+            cargarDatos();
+            
+            // Event listeners
+            $('#filterForm').on('submit', function(e) {
+                e.preventDefault();
+                currentPage = 0;
+                cargarDatos();
+            });
+            
+            $('#pageSize').on('change', function() {
+                pageSize = parseInt($(this).val());
+                currentPage = 0;
+                cargarDatos();
+            });
+        });
+        
+        // Función para cargar estadísticas
+        function cargarEstadisticas() {
+            showLoading();
+            $.ajax({
+                url: '/admin/auditoria/estadisticas',
+                method: 'GET',
+                success: function(response) {
+                    $('#totalRegistros').text(response.totalRegistros || 0);
+                    
+                    const porTipo = response.porTipoAccion || {};
+                    $('#totalInserts').text(porTipo.INSERT || 0);
+                    $('#totalUpdates').text(porTipo.UPDATE || 0);
+                    $('#totalDeletes').text(porTipo.DELETE || 0);
+                    $('#totalLogins').text(porTipo.LOGIN || 0);
+                    
+                    hideLoading();
+                },
+                error: function(xhr) {
+                    console.error('Error al cargar estadísticas:', xhr);
+                    hideLoading();
+                }
+            });
+        }
+        
+        // Función para cargar datos de auditoría
+        function cargarDatos() {
+            showLoading();
+            
+            const params = {
+                page: currentPage,
+                size: pageSize,
+                sortBy: $('#sortBy').val() || 'fechaAccion',
+                direction: $('#direction').val() || 'desc'
+            };
+            
+            // Agregar filtros si existen
+            const idUsuario = $('#filtroUsuario').val();
+            const tipoAccion = $('#filtroTipoAccion').val();
+            const nombreTabla = $('#filtroTabla').val();
+            const fechaInicio = $('#filtroFechaInicio').val();
+            const fechaFin = $('#filtroFechaFin').val();
+            
+            let url = '/admin/auditoria/listar';
+            
+            if (idUsuario || tipoAccion || nombreTabla || fechaInicio || fechaFin) {
+                url = '/admin/auditoria/buscar';
+                if (idUsuario) params.idUsuario = idUsuario;
+                if (tipoAccion) params.tipoAccion = tipoAccion;
+                if (nombreTabla) params.nombreTabla = nombreTabla;
+                if (fechaInicio) params.fechaInicio = fechaInicio;
+                if (fechaFin) params.fechaFin = fechaFin;
+            }
+            
+            $.ajax({
+                url: url,
+                method: 'GET',
+                data: params,
+                success: function(response) {
+                    renderizarTabla(response.content);
+                    actualizarPaginacion(response);
+                    hideLoading();
+                },
+                error: function(xhr) {
+                    console.error('Error al cargar datos:', xhr);
+                    mostrarError('Error al cargar los datos de auditoría');
+                    hideLoading();
+                }
+            });
+        }
+        
+        // Función para renderizar la tabla
+        function renderizarTabla(datos) {
+            const tbody = $('#tablaBody');
+            tbody.empty();
+            
+            if (datos.length === 0) {
+                tbody.append(`
+                    <tr>
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <h3>No hay registros</h3>
+                                <p>No se encontraron registros de auditoría con los filtros aplicados</p>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+            
+            datos.forEach(item => {
+                const badgeClass = getBadgeClass(item.tipoAccion);
+                const fecha = formatearFecha(item.fechaAccion);
+                
+                tbody.append(`
+                    <tr>
+                        <td><strong>#${item.idAuditoria}</strong></td>
+                        <td>
+                            <i class="fas fa-user-circle"></i> 
+                            Usuario ${item.idUsuario}
+                        </td>
+                        <td>
+                            <span class="badge badge-custom ${badgeClass}">
+                                ${item.tipoAccion}
+                            </span>
+                        </td>
+                        <td>
+                            <i class="fas fa-table"></i> 
+                            <strong>${item.nombreTabla}</strong>
+                        </td>
+                        <td>${item.idRegistroAfectado || '-'}</td>
+                        <td>${item.descripcionAccion || '-'}</td>
+                        <td>
+                            <i class="fas fa-network-wired"></i> 
+                            ${item.ipAcceso || '-'}
+                        </td>
+                        <td>
+                            <i class="fas fa-clock"></i> 
+                            ${fecha}
+                        </td>
+                        <td>
+                            <button class="btn-action btn-view" onclick="verDetalle(${item.idAuditoria})" title="Ver Detalle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+        
+        // Función para actualizar la paginación
+        function actualizarPaginacion(response) {
+            totalPages = response.totalPages;
+            totalElements = response.totalElements;
+            currentPage = response.number;
+            
+            const desde = (currentPage * pageSize) + 1;
+            const hasta = Math.min((currentPage + 1) * pageSize, totalElements);
+            
+            $('#paginationInfo').text(`Mostrando ${desde} - ${hasta} de ${totalElements} registros`);
+            
+            const pagination = $('#pagination');
+            pagination.empty();
+            
+            // Botón anterior
+            pagination.append(`
+                <li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cambiarPagina(${currentPage - 1}); return false;">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            `);
+            
+            // Páginas
+            const maxPaginas = 5;
+            let inicio = Math.max(0, currentPage - Math.floor(maxPaginas / 2));
+            let fin = Math.min(totalPages, inicio + maxPaginas);
+            
+            if (fin - inicio < maxPaginas) {
+                inicio = Math.max(0, fin - maxPaginas);
+            }
+            
+            for (let i = inicio; i < fin; i++) {
+                pagination.append(`
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="cambiarPagina(${i}); return false;">
+                            ${i + 1}
+                        </a>
+                    </li>
+                `);
+            }
+            
+            // Botón siguiente
+            pagination.append(`
+                <li class="page-item ${currentPage >= totalPages - 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cambiarPagina(${currentPage + 1}); return false;">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            `);
+        }
+        
+        // Función para cambiar de página
+        function cambiarPagina(pagina) {
+            if (pagina >= 0 && pagina < totalPages) {
+                currentPage = pagina;
+                cargarDatos();
+            }
+        }
+        
+        // Función para ver detalle
+        function verDetalle(id) {
+            showLoading();
+            $.ajax({
+                url: `/admin/auditoria/detalle/${id}`,
+                method: 'GET',
+                success: function(data) {
+                    renderizarDetalle(data);
+                    $('#modalDetalle').modal('show');
+                    hideLoading();
+                },
+                error: function(xhr) {
+                    console.error('Error al cargar detalle:', xhr);
+                    mostrarError('Error al cargar el detalle');
+                    hideLoading();
+                }
+            });
+        }
+        
+        // Función para renderizar el detalle
+        function renderizarDetalle(data) {
+            const badgeClass = getBadgeClass(data.tipoAccion);
+            const fecha = formatearFecha(data.fechaAccion);
+            
+            let html = `
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-hashtag"></i> ID Auditoría:
+                    </div>
+                    <div class="detail-value"><strong>#${data.idAuditoria}</strong></div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-user"></i> ID Usuario:
+                    </div>
+                    <div class="detail-value">Usuario ${data.idUsuario}</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-cog"></i> Tipo de Acción:
+                    </div>
+                    <div class="detail-value">
+                        <span class="badge badge-custom ${badgeClass}">${data.tipoAccion}</span>
+                    </div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-table"></i> Tabla Afectada:
+                    </div>
+                    <div class="detail-value"><strong>${data.nombreTabla}</strong></div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-key"></i> ID Registro:
+                    </div>
+                    <div class="detail-value">${data.idRegistroAfectado || 'N/A'}</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-align-left"></i> Descripción:
+                    </div>
+                    <div class="detail-value">${data.descripcionAccion || 'Sin descripción'}</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-network-wired"></i> Dirección IP:
+                    </div>
+                    <div class="detail-value">${data.ipAcceso || 'N/A'}</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-globe"></i> Navegador:
+                    </div>
+                    <div class="detail-value">${data.navegador || 'N/A'}</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-calendar-alt"></i> Fecha y Hora:
+                    </div>
+                    <div class="detail-value">${fecha}</div>
+                </div>
+            `;
+            
+            if (data.valorAnterior) {
+                html += `
+                    <div class="mt-3">
+                        <label class="detail-label mb-2">
+                            <i class="fas fa-history"></i> Valor Anterior:
+                        </label>
+                        <div class="json-viewer">${formatearJSON(data.valorAnterior)}</div>
+                    </div>
+                `;
+            }
+            
+            if (data.valorNuevo) {
+                html += `
+                    <div class="mt-3">
+                        <label class="detail-label mb-2">
+                            <i class="fas fa-file-alt"></i> Valor Nuevo:
+                        </label>
+                        <div class="json-viewer">${formatearJSON(data.valorNuevo)}</div>
+                    </div>
+                `;
+            }
+            
+            $('#detalleContent').html(html);
+        }
+        
+        // Función para limpiar filtros
+        function limpiarFiltros() {
+            $('#filterForm')[0].reset();
+            currentPage = 0;
+            cargarDatos();
+        }
+        
+        // Función para exportar a Excel
+        function exportarExcel() {
+            alert('Función de exportación a Excel en desarrollo');
+        }
+        
+        // Función para exportar a PDF
+        function exportarPDF() {
+            alert('Función de exportación a PDF en desarrollo');
+        }
+        
+        // Funciones auxiliares
+        function getBadgeClass(tipoAccion) {
+            const badges = {
+                'INSERT': 'badge-insert',
+                'UPDATE': 'badge-update',
+                'DELETE': 'badge-delete',
+                'LOGIN': 'badge-login',
+                'LOGOUT': 'badge-logout',
+                'EXPORT': 'badge-export',
+                'IMPORT': 'badge-import'
+            };
+            return badges[tipoAccion] || 'badge-secondary';
+        }
+        
+        function formatearFecha(fecha) {
+            if (!fecha) return 'N/A';
+            const date = new Date(fecha);
+            const opciones = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            return date.toLocaleDateString('es-PE', opciones);
+        }
+        
+        function formatearJSON(json) {
+            try {
+                const obj = typeof json === 'string' ? JSON.parse(json) : json;
+                return JSON.stringify(obj, null, 2);
+            } catch (e) {
+                return json;
+            }
+        }
+        
+        function showLoading() {
+            $('#loadingOverlay').css('display', 'flex');
+        }
+        
+        function hideLoading() {
+            $('#loadingOverlay').hide();
+        }
+        
+        function mostrarError(mensaje) {
+            alert(mensaje);
+        }
+    </script>
+</body>
+</html>

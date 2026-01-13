@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xml:lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Guía de Remisión ${GUIA_NUMERO_COMPLETO}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            margin: 0.5cm 1cm; /* Margen para impresión */
+        }
+        .header, .footer {
+            width: 100%;
+            text-align: center;
+        }
+        .header {
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0.5cm;
+            border-top: 1px solid #ccc;
+            font-size: 8pt;
+            color: #666;
+            margin-top: 20px;
+        }
+        .guia-info-box {
+            border: 2px solid #000;
+            padding: 5px;
+            margin-bottom: 15px;
+            display: flex; /* Para que la caja de la empresa y la guía queden lado a lado */
+        }
+        .empresa-data {
+            width: 60%;
+            padding-right: 10px;
+            border-right: 1px solid #ccc;
+        }
+        .guia-number {
+            width: 40%;
+            text-align: center;
+            padding-left: 10px;
+        }
+        .guia-number h2 {
+            font-size: 14pt;
+            color: #d90429;
+            margin: 0;
+            padding: 5px 0;
+            border: 1px solid #d90429;
+            background-color: #ffe5e5;
+        }
+        .guia-number p {
+            font-size: 11pt;
+            font-weight: bold;
+            margin: 5px 0 0 0;
+        }
+        
+        .section-box {
+            border: 1px solid #000;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+        .section-title {
+            font-weight: bold;
+            background-color: #f0f0f0;
+            padding: 3px;
+            margin-bottom: 5px;
+            font-size: 10pt;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+        .info-table td {
+            padding: 2px;
+            border: none;
+            vertical-align: top;
+        }
+        
+        .detail-table th, .detail-table td {
+            border: 1px solid #000;
+            padding: 4px;
+            vertical-align: middle;
+        }
+        .detail-table th {
+            background-color: #ddd;
+            text-align: center;
+        }
+        .center-align { text-align: center; }
+        .right-align { text-align: right; }
+    </style>
+</head>
+<body>
+    
+    <div class="guia-info-box">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="width: 60%; padding-right: 10px; border-right: 1px solid #ccc; vertical-align: top;">
+                    <h1 style="font-size: 16pt; margin: 0; color: #7c3aed;">${EMPRESA_NOMBRE}</h1>
+                    <p style="margin: 3px 0;">RUC: ${EMPRESA_RUC}</p>
+                    <p style="margin: 3px 0;">Dirección: ${EMPRESA_DIRECCION}</p>
+                </td>
+                <td style="width: 40%; text-align: center; padding-left: 10px; vertical-align: top;">
+                    <h2 style="font-size: 14pt; margin: 0; color: #d90429; padding: 5px 0; border: 1px solid #d90429; background-color: #ffe5e5;">R.U.C. ${EMPRESA_RUC}</h2>
+                    <h2 style="font-size: 14pt; margin: 5px 0 0 0; color: #d90429; padding: 5px 0; border: 1px solid #d90429; background-color: #ffe5e5;">GUÍA DE REMISIÓN</h2>
+                    <p style="font-size: 11pt; font-weight: bold; margin: 5px 0 0 0;">NÚMERO: ${GUIA_NUMERO_COMPLETO}</p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section-box">
+        <p class="section-title">DATOS DEL TRASLADO</p>
+        <table class="info-table">
+            <tr>
+                <td style="width: 25%;">Fecha de Emisión:</td><td style="width: 25%;">${GUIA_FECHA_EMISION}</td>
+                <td style="width: 25%;">Fecha de Traslado:</td><td style="width: 25%;">${FECHA_TRASLADO}</td>
+            </tr>
+            <tr>
+                <td>Tipo de Guía:</td><td>${GUIA_TIPO}</td>
+                <td>Motivo de Traslado:</td><td>${GUIA_MOTIVO}</td>
+            </tr>
+            <tr>
+                <td>Estado:</td><td><span style="font-weight: bold;">${GUIA_ESTADO}</span></td>
+                <td>N° Bultos:</td><td>${NUMERO_BULTOS}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section-box">
+        <p class="section-title">PUNTO DE PARTIDA Y LLEGADA</p>
+        <table class="info-table">
+            <tr>
+                <td style="width: 50%;">Punto de Partida: ${ORIGEN_INFO}</td>
+                <td style="width: 50%;">Punto de Llegada: ${DESTINO_INFO}</td>
+            </tr>
+            <tr>
+                <td>Dirección Origen: ${EMPRESA_DIRECCION} (Sede Principal)</td>
+                <td>Dirección Destino: ${DESTINO_DIRECCION}</td>
+            </tr>
+             <tr>
+                <td></td>
+                <td>RUC/DNI Destino: ${DESTINO_RUC}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section-box">
+        <p class="section-title">DATOS DEL TRANSPORTISTA Y UNIDAD</p>
+        <table class="info-table">
+            <tr>
+                <td style="width: 33%;">Transportista: ${TRANSPORTISTA}</td>
+                <td style="width: 33%;">Placa del Vehículo: ${VEHICULO_PLACA}</td>
+                <td style="width: 34%;">Licencia Conducir: ${LICENCIA_CONDUCIR}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section-box" style="padding: 0;">
+        <p class="section-title" style="margin: 0; padding: 5px; border-bottom: 1px solid #000;">DETALLE DE ÍTEMS</p>
+        <table class="detail-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 15%;">Código</th>
+                    <th style="width: 45%;">Descripción del Ítem</th>
+                    <th style="width: 10%;">Cantidad</th>
+                    <th style="width: 10%;">U.M.</th>
+                    <th style="width: 15%;">Lote</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${DETALLE_FILAS}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="section-box">
+        <p class="section-title">OBSERVACIONES</p>
+        <p style="margin: 0; min-height: 20px;">${OBSERVACIONES}</p>
+    </div>
+
+    <div class="footer">
+        <p>Documento no tributario. Generado el ${FECHA_ACCION_ACTUAL}.</p>
+    </div>
+</body>
+</html>

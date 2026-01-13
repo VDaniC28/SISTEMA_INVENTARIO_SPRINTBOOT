@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salidas de Inventario - Sistema de Gestión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        /* Estilos de la Vista Maestra (Sidebar) */
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f2f6ff; /* Color de fondo de la vista maestra */
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 10px;
+            border-right: 1px solid #ddd;
+            /* Asegura que el sidebar no use la fuente 'Segoe UI' si ya la pusiste en el segundo fragmento */
+            font-family: 'Inter', sans-serif; 
+        }
+
+        .sidebar h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .sidebar img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logout-btn i {
+            margin-right: 5px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            /* Permite que el 'main-container' dentro de 'main' controle el estilo del contenido */
+        }
+
+        /* Variables y Estilos de la Vista de Salidas (Adaptados) */
+        :root {
+            --primary-color: #6d3c7c;
+            --primary-light: #6d3c7c;
+            --primary-dark: #6d3c7c;
+            --secondary-color: #0d6efd;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --text-dark: #2c3e50;
+            --bg-light: #f8f9fa;
+        }
+        
+        /* Se quita el estilo 'body' de la segunda vista para no interferir con la estructura de la maestra */
+        /* La clase .main ya define el padding y el overflow */
+        
+        .main-container {
+            /* Se ha envuelto el contenido de la vista de salidas en este contenedor */
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            /* Se ajusta el margen y el max-width ya que está dentro de .main */
+            max-width: 100%; /* Usará el 100% del ancho de .main */
+            margin: 0; /* Sin margen superior/inferior ya que .main ya tiene padding */
+        }
+        
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--bg-light);
+        }
+        
+        .title-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .title-icon {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .title-section h2 {
+            margin: 0;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        
+        /* Filtros */
+        .filter-section {
+            background: var(--bg-light);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select-container {
+            flex: 0 0 250px;
+        }
+        
+        .filter-select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.1);
+        }
+        
+        .filter-tags-container {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-tag {
+            background: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            max-width: 300px;
+        }
+        
+        .filter-tag label {
+            font-weight: 600;
+            margin: 0;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        .filter-tag select,
+        .filter-tag input {
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 13px;
+            color: var(--primary-color);
+            background: white;
+            min-width: 100px;
+        }
+        
+        .filter-tag .btn-close-tag {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+        }
+        
+        .btn-filter {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        
+        /* Tabla */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .table {
+            margin: 0;
+        }
+        
+        .table thead {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+        }
+        
+        .table thead th {
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+        
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+        
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+        }
+        
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .badge-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .badge-pendiente {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-completada {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        .badge-anulada {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        
+        .action-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 3px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-view {
+            background-color: #0dcaf0;
+            color: white;
+        }
+        
+        .btn-view:hover {
+            background-color: #0aa2c0;
+            box-shadow: 0 4px 12px rgba(13, 202, 240, 0.4);
+        }
+        
+        .btn-cancel {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #bb2d3b;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+        
+        .btn-excel {
+            background-color: #198754;
+            color: white;
+        }
+        
+        .btn-excel:hover {
+            background-color: #146c43;
+            box-shadow: 0 4px 12px rgba(25, 135, 84, 0.4);
+        }
+        
+        /* Paginación */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: var(--bg-light);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .pagination {
+            margin: 0;
+        }
+        
+        .page-link {
+            color: var(--primary-color);
+            border: 1px solid #dee2e6;
+            margin: 0 3px;
+            border-radius: 6px;
+        }
+        
+        .page-link:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* Modal */
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.1);
+        }
+        
+        .items-list {
+            background: var(--bg-light);
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .item-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .item-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+        
+        .item-info {
+            flex: 1;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+        
+        .item-details {
+            font-size: 13px;
+            color: #6c757d;
+        }
+        
+        .btn-remove-item {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-remove-item:hover {
+            background: #bb2d3b;
+            transform: scale(1.1);
+        }
+        
+        .summary-box {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid var(--primary-color);
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 15px;
+        }
+        
+        .summary-row.total {
+            border-top: 2px solid var(--primary-color);
+            padding-top: 15px;
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div>
+        <a href="/admin/vistaAdmin">
+            <img src="/images/Logo.png" alt="Logo">
+        </a>
+        <h2>SISTEMA INVENTARIO</h2>
+        </div>  
+    <form action="/logout" method="post">
+        <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </form>
+</div>
+
+<div class="main">
+    <div class="container-fluid">
+        <div class="main-container">
+            <!-- Header -->
+            <div class="header-section">
+                <div class="title-section">
+                    <div class="title-icon">
+                        <i class="fas fa-arrow-right-from-bracket"></i>
+                    </div>
+                    <div>
+                        <h2>Salidas de Inventario</h2>
+                        <small class="text-muted">Gestión de salidas y movimientos de stock</small>
+                    </div>
+                </div>
+                <button class="btn btn-primary-custom" onclick="abrirModalNuevaSalida()">
+                    <i class="fas fa-plus me-2"></i> Nueva Salida
+                </button>
+            </div>
+            
+            <!-- Filtros -->
+            <div class="filter-section">
+                <div class="filter-controls">
+                    <div class="filter-select-container">
+                        <select class="filter-select" id="selectFiltro" onchange="agregarFiltro()">
+                            <option value="">Seleccionar filtro...</option>
+                            <option value="cliente">Cliente</option>
+                            <option value="rango-fechas">Rango de Fechas</option>
+                            <option value="estado">Estado de Salida</option>
+                            <option value="tipo">Tipo de Movimiento</option>
+                            <option value="almacen">Almacén Origen</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-tags-container" id="filterTags">
+                        <!-- Los tags de filtros se agregarán aquí dinámicamente -->
+                    </div>
+                    
+                    <button class="btn-filter" onclick="aplicarFiltros()">
+                        <i class="fas fa-filter me-2"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tabla -->
+            <div class="table-container">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>No. Salida</th>
+                            <th>Fecha Salida</th>
+                            <th>Tipo Salida</th>
+                            <th>Tipo Comprobante</th>
+                            <th>Cliente</th>
+                            <th>Almacén Origen</th>
+                            <th>Monto Total</th>
+                            <th>Estado</th>
+                            <th>Registrado Por</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaSalidas">
+                        <!-- Los datos se cargarán dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginación -->
+            <div class="pagination-container">
+                <div>
+                    Mostrando <span id="showingFrom">0</span> a <span id="showingTo">0</span> de <span id="totalRecords">0</span> registros
+                </div>
+                <nav>
+                    <ul class="pagination" id="paginacion">
+                        <!-- La paginación se generará dinámicamente -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Nueva Salida -->
+    <div class="modal fade" id="modalNuevaSalida" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-export me-2"></i> Registrar Nueva Salida
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNuevaSalida">
+                        <!-- Sección 1: Información General -->
+                        <div class="section-title">
+                            <i class="fas fa-info-circle"></i> Información General
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Número de Salida <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="numeroSalida" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Fecha de Salida <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="fechaSalida" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Tipo de Salida <span class="text-danger">*</span></label>
+                                <select class="form-select" id="tipoSalida" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Venta">Venta</option>
+                                    <option value="Transferencia">Transferencia</option>
+                                    <option value="Devolucion">Devolución</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Tipo de Comprobante <span class="text-danger">*</span></label>
+                                <select class="form-select" id="tipoComprobante" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Boleta">Boleta</option>
+                                    <option value="Factura">Factura</option>
+                                    <option value="Guia">Guía</option>
+                                    <option value="Nota">Nota</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Cliente</label>
+                                <select class="form-select" id="clienteSalida">
+                                    <option value="">Seleccionar cliente...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Almacén Origen <span class="text-danger">*</span></label>
+                                <select class="form-select" id="almacenSalida" required>
+                                    <option value="">Seleccionar almacén...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 2: Detalle de Salida -->
+                        <div class="section-title mt-4">
+                            <i class="fas fa-list"></i> Detalle de Salida
+                        </div>
+                        <div class="d-flex justify-content-end mb-3">
+                            <button type="button" class="btn btn-primary-custom btn-sm" onclick="abrirModalAgregarItem()">
+                                <i class="fas fa-plus me-2"></i> Agregar Item
+                            </button>
+                        </div>
+                        
+                        <div class="items-list" id="itemsList">
+                            <div class="empty-state">
+                                <i class="fas fa-box-open"></i>
+                                <p>No hay items agregados. Haz clic en "Agregar Item" para comenzar.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 3: Resumen de Totales -->
+                        <div class="section-title mt-4">
+                            <i class="fas fa-calculator"></i> Resumen de Totales
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8"></div>
+                            <div class="col-md-4">
+                                <div class="summary-box">
+                                    <div class="summary-row">
+                                        <span>Subtotal:</span>
+                                        <strong id="subtotalSalida">S/ 0.00</strong>
+                                    </div>
+                                    <div class="summary-row">
+                                        <span>IGV (18%):</span>
+                                        <strong id="impuestosSalida">S/ 0.00</strong>
+                                    </div>
+                                    <div class="summary-row">
+                                        <span>Descuentos:</span>
+                                        <strong id="descuentosSalida">S/ 0.00</strong>
+                                    </div>
+                                    <div class="summary-row total">
+                                        <span>TOTAL:</span>
+                                        <strong id="totalSalida">S/ 0.00</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary-custom" onclick="guardarSalida()">
+                        <i class="fas fa-save me-2"></i> Guardar Salida
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Agregar Item -->
+    <div class="modal fade" id="modalAgregarItem" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus-circle me-2"></i> Agregar Item de Salida
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formAgregarItem">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Tipo de Item <span class="text-danger">*</span></label>
+                                <select class="form-select" id="tipoItem" onchange="cambiarTipoItem()" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Producto">Producto</option>
+                                    <option value="Suministro">Suministro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Almacén <span class="text-danger">*</span></label>
+                                <select class="form-select" id="almacenItem" onchange="cargarItemsPorAlmacen()" required>
+                                    <option value="">Seleccionar almacén...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label" id="labelItem">Item <span class="text-danger">*</span></label>
+                                <select class="form-select" id="itemSeleccionado" onchange="seleccionarItem()" required>
+                                    <option value="">Seleccionar item...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Stock Disponible</label>
+                                <input type="number" class="form-control" id="stockDisponible" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Cantidad <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="cantidadItem" min="1" required onchange="calcularSubtotalItem()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Precio Unitario <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="precioUnitarioItem" step="0.01" required onchange="calcularSubtotalItem()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Lote</label>
+                                <input type="text" class="form-control" id="loteItem" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Descuento Unitario</label>
+                                <input type="number" class="form-control" id="descuentoUnitarioItem" step="0.01" value="0" onchange="calcularSubtotalItem()">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Impuesto Unitario</label>
+                                <input type="number" class="form-control" id="impuestoUnitarioItem" step="0.01" value="0" onchange="calcularSubtotalItem()">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Subtotal</label>
+                                <input type="number" class="form-control" id="subtotalItem" readonly>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary-custom" onclick="agregarItemALista()">
+                        <i class="fas fa-check me-2"></i> Agregar Item
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Ver Detalle -->
+    <div class="modal fade" id="modalVerDetalle" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-eye me-2"></i> Detalle de Salida
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detalleContent">
+                    <!-- El contenido se cargará dinámicamente -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i> Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales
+        let currentPage = 0;
+        let pageSize = 10;
+        let itemsTemporales = [];
+        let filtrosActivos = {};
+        let clientesData = [];
+        let almacenesData = [];
+        let productosData = [];
+        let suministrosData = [];
+
+        // ============================================================
+        // INICIALIZACIÓN
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarClientes();
+            cargarAlmacenes();
+            cargarSalidas();
+            establecerFechaActual();
+        });
+
+        function establecerFechaActual() {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaSalida').value = hoy;
+        }
+
+        // ============================================================
+        // CARGAR DATOS INICIALES
+        // ============================================================
+        async function cargarClientes() {
+            try {
+                const response = await fetch('/admin/salidas-inventario/clientes');
+                clientesData = await response.json();
+                
+                const selectCliente = document.getElementById('clienteSalida');
+                selectCliente.innerHTML = '<option value="">Seleccionar cliente...</option>';
+                clientesData.forEach(cliente => {
+                    selectCliente.innerHTML += `<option value="${cliente.idCliente}">${cliente.nombreCliente}</option>`;
+                });
+            } catch (error) {
+                console.error('Error al cargar clientes:', error);
+            }
+        }
+
+        async function cargarAlmacenes() {
+            try {
+                const response = await fetch('/admin/salidas-inventario/almacenes');
+                almacenesData = await response.json();
+                
+                const selectAlmacen = document.getElementById('almacenSalida');
+                const selectAlmacenItem = document.getElementById('almacenItem');
+                
+                selectAlmacen.innerHTML = '<option value="">Seleccionar almacén...</option>';
+                selectAlmacenItem.innerHTML = '<option value="">Seleccionar almacén...</option>';
+                
+                almacenesData.forEach(almacen => {
+                    const option = `<option value="${almacen.idAlmacen}">${almacen.nombreAlmacen}</option>`;
+                    selectAlmacen.innerHTML += option;
+                    selectAlmacenItem.innerHTML += option;
+                });
+            } catch (error) {
+                console.error('Error al cargar almacenes:', error);
+            }
+        }
+
+        // ============================================================
+        // GESTIÓN DE FILTROS
+        // ============================================================
+        function agregarFiltro() {
+            const select = document.getElementById('selectFiltro');
+            const filtroSeleccionado = select.value;
+            
+            if (!filtroSeleccionado) return;
+            
+            // Verificar si ya existe el filtro
+            if (filtrosActivos[filtroSeleccionado]) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Filtro ya agregado',
+                    text: 'Este filtro ya está en uso',
+                    timer: 2000
+                });
+                select.value = '';
+                return;
+            }
+            
+            const filterTags = document.getElementById('filterTags');
+            let tagHTML = '';
+            
+            switch(filtroSeleccionado) {
+                case 'cliente':
+                    tagHTML = `
+                        <div class="filter-tag" data-filter="cliente">
+                            <label>Cliente:</label>
+                            <select id="filtroCliente" class="form-select-sm">
+                                <option value="">Todos</option>
+                                ${clientesData.map(c => `<option value="${c.idCliente}">${c.nombreCliente}</option>`).join('')}
+                            </select>
+                            <button class="btn-close-tag" onclick="eliminarFiltro('cliente')">×</button>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'rango-fechas':
+                    tagHTML = `
+                        <div class="filter-tag" data-filter="rango-fechas">
+                            <label>Desde:</label>
+                            <input type="date" id="filtroFechaInicio" class="form-control-sm">
+                            <label>Hasta:</label>
+                            <input type="date" id="filtroFechaFin" class="form-control-sm">
+                            <button class="btn-close-tag" onclick="eliminarFiltro('rango-fechas')">×</button>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'estado':
+                    tagHTML = `
+                        <div class="filter-tag" data-filter="estado">
+                            <label>Estado:</label>
+                            <select id="filtroEstado" class="form-select-sm">
+                                <option value="">Todos</option>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Completada">Completada</option>
+                                <option value="Anulada">Anulada</option>
+                            </select>
+                            <button class="btn-close-tag" onclick="eliminarFiltro('estado')">×</button>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'tipo':
+                    tagHTML = `
+                        <div class="filter-tag" data-filter="tipo">
+                            <label>Tipo:</label>
+                            <select id="filtroTipo" class="form-select-sm">
+                                <option value="">Todos</option>
+                                <option value="Venta">Venta</option>
+                                <option value="Transferencia">Transferencia</option>
+                                <option value="Devolucion">Devolución</option>
+                            </select>
+                            <button class="btn-close-tag" onclick="eliminarFiltro('tipo')">×</button>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'almacen':
+                    tagHTML = `
+                        <div class="filter-tag" data-filter="almacen">
+                            <label>Almacén:</label>
+                            <select id="filtroAlmacen" class="form-select-sm">
+                                <option value="">Todos</option>
+                                ${almacenesData.map(a => `<option value="${a.idAlmacen}">${a.nombreAlmacen}</option>`).join('')}
+                            </select>
+                            <button class="btn-close-tag" onclick="eliminarFiltro('almacen')">×</button>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            filterTags.insertAdjacentHTML('beforeend', tagHTML);
+            filtrosActivos[filtroSeleccionado] = true;
+            select.value = '';
+        }
+
+        function eliminarFiltro(filtro) {
+            const tag = document.querySelector(`[data-filter="${filtro}"]`);
+            if (tag) {
+                tag.remove();
+                delete filtrosActivos[filtro];
+            }
+        }
+
+        function aplicarFiltros() {
+            currentPage = 0;
+            cargarSalidas();
+        }
+
+        function obtenerValoresFiltros() {
+            const params = new URLSearchParams();
+            params.append('page', currentPage);
+            params.append('size', pageSize);
+            
+            if (filtrosActivos.cliente) {
+                const clienteId = document.getElementById('filtroCliente')?.value;
+                if (clienteId) params.append('clienteId', clienteId);
+            }
+            
+            if (filtrosActivos['rango-fechas']) {
+                const fechaInicio = document.getElementById('filtroFechaInicio')?.value;
+                const fechaFin = document.getElementById('filtroFechaFin')?.value;
+                if (fechaInicio) params.append('fechaInicio', fechaInicio);
+                if (fechaFin) params.append('fechaFin', fechaFin);
+            }
+            
+            if (filtrosActivos.estado) {
+                const estado = document.getElementById('filtroEstado')?.value;
+                if (estado) params.append('estadoSalida', estado);
+            }
+            
+            if (filtrosActivos.tipo) {
+                const tipo = document.getElementById('filtroTipo')?.value;
+                if (tipo) params.append('tipoSalida', tipo);
+            }
+            
+            if (filtrosActivos.almacen) {
+                const almacenId = document.getElementById('filtroAlmacen')?.value;
+                if (almacenId) params.append('almacenId', almacenId);
+            }
+            
+            return params.toString();
+        }
+
+        // ============================================================
+        // CARGAR Y MOSTRAR SALIDAS
+        // ============================================================
+        async function cargarSalidas() {
+            try {
+                const params = obtenerValoresFiltros();
+                const response = await fetch(`/admin/salidas-inventario/listar?${params}`);
+
+                // 1. Manejo de errores HTTP: Si la respuesta no es OK (ej. 404, 500, 503)
+                if (!response.ok) {
+                    // Intenta leer el cuerpo de error si existe (asumiendo que es JSON)
+                    let errorMessage = 'Error desconocido del servidor';
+                    try {
+                        const errorData = await response.json();
+                        // Usa un mensaje genérico o el que devuelva el backend si lo tiene
+                        errorMessage = errorData.message || `Error ${response.status}: Ha ocurrido un problema al obtener los datos.`;
+                    } catch (jsonError) {
+                        // El cuerpo del 500 no era JSON
+                        errorMessage = `Error ${response.status}: No se pudo obtener la respuesta del servidor.`;
+                    }
+                    // Lanza el error para que el bloque 'catch' lo maneje.
+                    throw new Error(errorMessage);
+                }
+                
+                // 2. Procesamiento de la respuesta 200 OK
+                const data = await response.json();
+                
+                // 3. Comprobación de que 'content' existe antes de pasarlo a mostrarSalidas
+                // Esto previene el 'TypeError: Cannot read properties of undefined'
+                if (!data.content) {
+                    throw new Error("Estructura de datos inesperada. La lista 'content' no fue encontrada.");
+                }
+
+                mostrarSalidas(data.content);
+                actualizarPaginacion(data);
+                
+            } catch (error) {
+                // El catch ahora maneja errores de red, errores de análisis de JSON, y errores 500 controlados.
+                console.error('Error al cargar salidas:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de Carga',
+                    text: error.message || 'No se pudieron cargar las salidas.'
+                });
+            }
+        }
+
+        function mostrarSalidas(salidas) {
+            const tbody = document.getElementById('tablaSalidas');
+            
+            if (salidas.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center py-4">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No se encontraron salidas de inventario</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Función auxiliar para generar el botón del documento (Boleta, Factura, Guia, Nota)
+            function generarBotonDocumento(idSalida, tipoComprobante) {
+                // Solo generamos el botón para los tipos de comprobantes que son documentos imprimibles
+                if (['Boleta', 'Factura', 'Guia', 'Nota'].includes(tipoComprobante)) {
+                    const urlDocumento = `/admin/salidas-inventario/documento/${idSalida}`;
+                    
+                    // Usamos un <a> tag con target="_blank" para abrir el PDF en una nueva pestaña
+                    // El backend se encargará de determinar el formato exacto (PDF de Boleta, Factura, etc.)
+                    return `
+                        <a href="${urlDocumento}" target="_blank" 
+                        class="action-btn btn-pdf" 
+                        title="Imprimir ${tipoComprobante}">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                    `;
+                }
+                return ''; // No muestra nada si el tipoComprobante no es uno de los listados
+            }
+
+            tbody.innerHTML = salidas.map(salida => {
+                // Generamos los botones condicionalmente
+                const botonAnular = salida.estadoSalida !== 'Anulada' ? `
+                    <button class="action-btn btn-cancel" onclick="anularSalida(${salida.idSalida})" title="Anular">
+                        <i class="fas fa-ban"></i>
+                    </button>
+                ` : '';
+
+                // Generamos el botón de documento usando la nueva función auxiliar
+                const botonDocumento = salida.estadoSalida !== 'Anulada' ? 
+                    generarBotonDocumento(salida.idSalida, salida.tipoComprobante) 
+                    : '';
+                
+                return `
+                    <tr>
+                        <td><strong>${salida.numeroSalida}</strong></td>
+                        <td>${formatearFecha(salida.fechaSalida)}</td>
+                        <td>${salida.tipoSalida}</td>
+                        <td>${salida.tipoComprobante}</td>
+                        <td>${salida.nombreCliente || 'N/A'}</td>
+                        <td>${salida.nombreAlmacen}</td>
+                        <td><strong>S/ ${parseFloat(salida.montoTotal).toFixed(2)}</strong></td>
+                        <td><span class="badge-status badge-${salida.estadoSalida.toLowerCase()}">${salida.estadoSalida}</span></td>
+                        <td>${salida.nombreUsuario}</td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="verDetalle(${salida.idSalida})" title="Ver detalle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${botonAnular}
+                            ${botonDocumento} </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function actualizarPaginacion(data) {
+            document.getElementById('showingFrom').textContent = data.empty ? 0 : (data.number * data.size + 1);
+            document.getElementById('showingTo').textContent = data.empty ? 0 : Math.min((data.number + 1) * data.size, data.totalElements);
+            document.getElementById('totalRecords').textContent = data.totalElements;
+            
+            const paginacion = document.getElementById('paginacion');
+            let html = '';
+            
+            // Botón anterior
+            html += `
+                <li class="page-item ${data.first ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cambiarPagina(${data.number - 1}); return false;">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            `;
+            
+            // Números de página
+            const startPage = Math.max(0, data.number - 2);
+            const endPage = Math.min(data.totalPages - 1, data.number + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `
+                    <li class="page-item ${i === data.number ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="cambiarPagina(${i}); return false;">${i + 1}</a>
+                    </li>
+                `;
+            }
+            
+            // Botón siguiente
+            html += `
+                <li class="page-item ${data.last ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cambiarPagina(${data.number + 1}); return false;">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            `;
+            
+            paginacion.innerHTML = html;
+        }
+
+        function cambiarPagina(page) {
+            currentPage = page;
+            cargarSalidas();
+        }
+
+        // ============================================================
+        // MODAL NUEVA SALIDA
+        // ============================================================
+        async function abrirModalNuevaSalida() {
+            itemsTemporales = [];
+            document.getElementById('formNuevaSalida').reset();
+            
+            // Generar número de salida
+            try {
+                const response = await fetch('/admin/salidas-inventario/generar-numero');
+                const data = await response.json();
+                document.getElementById('numeroSalida').value = data.numeroSalida;
+            } catch (error) {
+                console.error('Error al generar número:', error);
+            }
+            
+            establecerFechaActual();
+            actualizarVistaItems();
+            calcularTotales();
+            
+            const modal = new bootstrap.Modal(document.getElementById('modalNuevaSalida'));
+            modal.show();
+        }
+
+        // ============================================================
+        // MODAL AGREGAR ITEM
+        // ============================================================
+        function abrirModalAgregarItem() {
+            if (!document.getElementById('almacenSalida').value) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atención',
+                    text: 'Primero debe seleccionar un almacén origen'
+                });
+                return;
+            }
+            
+            document.getElementById('formAgregarItem').reset();
+            document.getElementById('itemSeleccionado').innerHTML = '<option value="">Seleccionar item...</option>';
+            document.getElementById('stockDisponible').value = '';
+            document.getElementById('loteItem').value = '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('modalAgregarItem'));
+            modal.show();
+        }
+
+        function cambiarTipoItem() {
+            const tipoItem = document.getElementById('tipoItem').value;
+            const labelItem = document.getElementById('labelItem');
+            
+            if (tipoItem === 'Producto') {
+                labelItem.innerHTML = 'Producto <span class="text-danger">*</span>';
+            } else if (tipoItem === 'Suministro') {
+                labelItem.innerHTML = 'Suministro <span class="text-danger">*</span>';
+            }
+            
+            document.getElementById('itemSeleccionado').innerHTML = '<option value="">Seleccionar item...</option>';
+            document.getElementById('stockDisponible').value = '';
+            document.getElementById('precioUnitarioItem').value = '';
+            document.getElementById('loteItem').value = '';
+            
+            cargarItemsPorAlmacen();
+        }
+
+        async function cargarItemsPorAlmacen() {
+            const tipoItem = document.getElementById('tipoItem').value;
+            const almacenId = document.getElementById('almacenItem').value;
+            
+            if (!tipoItem || !almacenId) return;
+            
+            const selectItem = document.getElementById('itemSeleccionado');
+            selectItem.innerHTML = '<option value="">Cargando...</option>';
+            
+            try {
+                let url = '';
+                if (tipoItem === 'Producto') {
+                    url = `/admin/salidas-inventario/productos-almacen/${almacenId}`;
+                } else {
+                    url = `/admin/salidas-inventario/suministros-almacen/${almacenId}`;
+                }
+                
+                const response = await fetch(url);
+                const items = await response.json();
+                
+                selectItem.innerHTML = '<option value="">Seleccionar item...</option>';
+                
+                if (items.length === 0) {
+                    selectItem.innerHTML = '<option value="">No hay items disponibles</option>';
+                    return;
+                }
+                
+                items.forEach(item => {
+                    if (tipoItem === 'Producto') {
+                        selectItem.innerHTML += `
+                            <option value="${item.idProducto}" 
+                                    data-precio="${item.precioVenta}" 
+                                    data-stock="${item.stockDisponible}"
+                                    data-lote="${item.lote || ''}"
+                                    data-nombre="${item.nombreProducto}">
+                                ${item.nombreProducto} - Stock: ${item.stockDisponible}
+                            </option>
+                        `;
+                    } else {
+                        selectItem.innerHTML += `
+                            <option value="${item.idSuministro}" 
+                                    data-precio="${item.precioCompra}" 
+                                    data-stock="${item.stockDisponible}"
+                                    data-lote="${item.lote || ''}"
+                                    data-nombre="${item.nombreSuministro}">
+                                ${item.nombreSuministro} - Stock: ${item.stockDisponible}
+                            </option>
+                        `;
+                    }
+                });
+            } catch (error) {
+                console.error('Error al cargar items:', error);
+                selectItem.innerHTML = '<option value="">Error al cargar items</option>';
+            }
+        }
+
+        function seleccionarItem() {
+            const select = document.getElementById('itemSeleccionado');
+            const option = select.options[select.selectedIndex];
+            
+            if (!option.value) return;
+            
+            document.getElementById('stockDisponible').value = option.dataset.stock || 0;
+            document.getElementById('precioUnitarioItem').value = option.dataset.precio || 0;
+            document.getElementById('loteItem').value = option.dataset.lote || '';
+            document.getElementById('cantidadItem').max = option.dataset.stock;
+            
+            calcularSubtotalItem();
+        }
+
+        function calcularSubtotalItem() {
+            const cantidad = parseFloat(document.getElementById('cantidadItem').value) || 0;
+            const precioUnitario = parseFloat(document.getElementById('precioUnitarioItem').value) || 0;
+            const descuento = parseFloat(document.getElementById('descuentoUnitarioItem').value) || 0;
+            const impuesto = parseFloat(document.getElementById('impuestoUnitarioItem').value) || 0;
+            const stockDisponible = parseFloat(document.getElementById('stockDisponible').value) || 0;
+            
+            if (cantidad > stockDisponible) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stock insuficiente',
+                    text: `Solo hay ${stockDisponible} unidades disponibles`
+                });
+                document.getElementById('cantidadItem').value = stockDisponible;
+                return;
+            }
+            
+            const subtotal = (cantidad * precioUnitario) - descuento + impuesto;
+            document.getElementById('subtotalItem').value = subtotal.toFixed(2);
+        }
+
+        function agregarItemALista() {
+            const form = document.getElementById('formAgregarItem');
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            const tipoItem = document.getElementById('tipoItem').value;
+            const almacenId = document.getElementById('almacenItem').value;
+            const selectItem = document.getElementById('itemSeleccionado');
+            const itemId = selectItem.value;
+            const itemNombre = selectItem.options[selectItem.selectedIndex].dataset.nombre;
+            const cantidad = parseInt(document.getElementById('cantidadItem').value);
+            const precioUnitario = parseFloat(document.getElementById('precioUnitarioItem').value);
+            const descuento = parseFloat(document.getElementById('descuentoUnitarioItem').value) || 0;
+            const impuesto = parseFloat(document.getElementById('impuestoUnitarioItem').value) || 0;
+            const subtotal = parseFloat(document.getElementById('subtotalItem').value);
+            const lote = document.getElementById('loteItem').value;
+            const almacenNombre = document.getElementById('almacenItem').options[document.getElementById('almacenItem').selectedIndex].text;
+            
+            const item = {
+                tipoItem: tipoItem,
+                idProducto: tipoItem === 'Producto' ? itemId : null,
+                idSuministro: tipoItem === 'Suministro' ? itemId : null,
+                idAlmacen: almacenId,
+                nombreItem: itemNombre,
+                nombreAlmacen: almacenNombre,
+                cantidad: cantidad,
+                precioUnitario: precioUnitario,
+                descuentoUnitario: descuento,
+                impuestoUnitario: impuesto,
+                subtotalLinea: subtotal,
+                lote: lote
+            };
+            
+            itemsTemporales.push(item);
+            actualizarVistaItems();
+            calcularTotales();
+            
+            bootstrap.Modal.getInstance(document.getElementById('modalAgregarItem')).hide();
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Item agregado',
+                text: 'El item se agregó correctamente',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
+        function actualizarVistaItems() {
+            const itemsList = document.getElementById('itemsList');
+            
+            if (itemsTemporales.length === 0) {
+                itemsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <p>No hay items agregados. Haz clic en "Agregar Item" para comenzar.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            itemsList.innerHTML = itemsTemporales.map((item, index) => `
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-name">${item.nombreItem}</div>
+                        <div class="item-details">
+                            <span><strong>Tipo:</strong> ${item.tipoItem}</span> | 
+                            <span><strong>Almacén:</strong> ${item.nombreAlmacen}</span> | 
+                            <span><strong>Cantidad:</strong> ${item.cantidad}</span> | 
+                            <span><strong>Precio Unit.:</strong> S/ ${item.precioUnitario.toFixed(2)}</span> | 
+                            <span><strong>Subtotal:</strong> S/ ${item.subtotalLinea.toFixed(2)}</span>
+                            ${item.lote ? ` | <span><strong>Lote:</strong> ${item.lote}</span>` : ''}
+                        </div>
+                    </div>
+                    <button class="btn-remove-item" onclick="eliminarItem(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function eliminarItem(index) {
+            Swal.fire({
+                title: '¿Eliminar item?',
+                text: 'Se eliminará este item de la lista',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    itemsTemporales.splice(index, 1);
+                    actualizarVistaItems();
+                    calcularTotales();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Eliminado',
+                        text: 'El item ha sido eliminado',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        }
+
+        function calcularTotales() {
+            let subtotal = 0;
+            let totalDescuentos = 0;
+            let totalImpuestos = 0;
+            
+            itemsTemporales.forEach(item => {
+                subtotal += (item.cantidad * item.precioUnitario);
+                totalDescuentos += item.descuentoUnitario;
+                totalImpuestos += item.impuestoUnitario;
+            });
+            
+            const total = subtotal - totalDescuentos + totalImpuestos;
+            
+            document.getElementById('subtotalSalida').textContent = `S/ ${subtotal.toFixed(2)}`;
+            document.getElementById('impuestosSalida').textContent = `S/ ${totalImpuestos.toFixed(2)}`;
+            document.getElementById('descuentosSalida').textContent = `S/ ${totalDescuentos.toFixed(2)}`;
+            document.getElementById('totalSalida').textContent = `S/ ${total.toFixed(2)}`;
+        }
+
+        // ============================================================
+        // GUARDAR SALIDA
+        // ============================================================
+      async function guardarSalida() {
+            const form = document.getElementById('formNuevaSalida');
+            
+            // Validar formulario
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Validar que haya items
+            if (itemsTemporales.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin items',
+                    text: 'Debe agregar al menos un item a la salida'
+                });
+                return;
+            }
+            
+            // Capturar valores del formulario
+            const clienteValue = document.getElementById('clienteSalida').value;
+            const almacenValue = document.getElementById('almacenSalida').value;
+            
+            // ⭐ CALCULAR TOTALES CORRECTAMENTE (mismo algoritmo que calcularTotales())
+            let subtotal = 0;
+            let totalDescuentos = 0;
+            let totalImpuestos = 0;
+            
+            itemsTemporales.forEach(item => {
+                subtotal += (item.cantidad * item.precioUnitario);
+                totalDescuentos += (item.descuentoUnitario || 0);
+                totalImpuestos += (item.impuestoUnitario || 0);
+            });
+            
+            const montoTotal = subtotal - totalDescuentos + totalImpuestos;
+           
+            
+            // Validar que montoTotal no sea null, undefined o NaN
+            if (!montoTotal || isNaN(montoTotal)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error en cálculo',
+                    text: 'No se pudo calcular el monto total. Verifique los datos de los items.'
+                });
+                return;
+            }
+            
+            // Preparar objeto de salida
+            const salidaData = {
+                numeroSalida: document.getElementById('numeroSalida').value,
+                fechaSalida: document.getElementById('fechaSalida').value,
+                tipoSalida: document.getElementById('tipoSalida').value,
+                tipoComprobante: document.getElementById('tipoComprobante').value,
+                idCliente: clienteValue ? parseInt(clienteValue) : null,
+                idAlmacen: parseInt(almacenValue),
+                subtotal: parseFloat(subtotal.toFixed(4)),
+                impuestos: parseFloat(totalImpuestos.toFixed(4)),
+                descuentos: parseFloat(totalDescuentos.toFixed(4)),
+                montoTotal: parseFloat(montoTotal.toFixed(4)),
+                estadoSalida: 'Completada',
+                detalles: itemsTemporales.map(item => {
+                    
+                    // Calcular subtotal de línea
+                    const subtotalLinea = (item.cantidad * item.precioUnitario) - 
+                                        (item.descuentoUnitario || 0) + 
+                                        (item.impuestoUnitario || 0);
+                    
+                    // ⭐ DETERMINAR SI ES PRODUCTO O SUMINISTRO
+                    const esProducto = item.tipo === 'producto' || item.idProducto;
+                    const esSuministro = item.tipo === 'suministro' || item.idSuministro;
+                    
+                    const idProducto = esProducto ? (item.id || item.idProducto) : null;
+                    const idSuministro = esSuministro ? (item.id || item.idSuministro) : null;
+                    
+                    console.log('ID Producto final:', idProducto);
+                    console.log('ID Suministro final:', idSuministro);
+                    
+                    return {
+                        idProducto: idProducto,
+                        idSuministro: idSuministro,
+                        idAlmacen: parseInt(almacenValue),
+                        cantidad: parseInt(item.cantidad),
+                        precioUnitario: parseFloat(item.precioUnitario.toFixed(4)),
+                        descuentoUnitario: parseFloat((item.descuentoUnitario || 0).toFixed(4)),
+                        impuestoUnitario: parseFloat((item.impuestoUnitario || 0).toFixed(4)),
+                        subtotalLinea: parseFloat(subtotalLinea.toFixed(4)),
+                        lote: item.lote || null
+                    };
+                })
+            };
+            
+            // Mostrar loading
+            Swal.fire({
+                title: 'Guardando...',
+                text: 'Por favor espere',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            try {
+                const response = await fetch('/admin/salidas-inventario/crear', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(salidaData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: result.message,
+                        confirmButtonText: 'Aceptar'
+                    }).then(() => {
+                        // Cerrar modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevaSalida'));
+                        if (modal) {
+                            modal.hide();
+                        }
+                        
+                        // Limpiar formulario y items
+                        itemsTemporales = [];
+                        form.reset();
+                        actualizarVistaItems();
+                        calcularTotales();
+                        
+                        // Recargar tabla
+                        if (typeof cargarSalidas === 'function') {
+                            cargarSalidas();
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message
+                    });
+                }
+            } catch (error) {
+                console.error('Error completo:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error del servidor',
+                    text: 'No se pudo registrar la salida. Intente nuevamente.'
+                });
+            }
+        }
+        // ============================================================
+        // VER DETALLE
+        // ============================================================
+        async function verDetalle(idSalida) {
+            try {
+                const response = await fetch(`/admin/salidas-inventario/${idSalida}`);
+
+                if (!response.ok) {
+                    let status = response.status;
+                    let errorMessage;
+                    
+                    if (status === 404) {
+                        // Mensaje limpio si la salida no existe (el servidor devuelve 404 .build())
+                        errorMessage = `Error ${status}: La salida de inventario con ID ${idSalida} no fue encontrada en la base de datos.`;
+                    } else {
+                        // Intenta leer el JSON solo para otros errores (400, 500 con cuerpo, etc.)
+                        try {
+                            const errorData = await response.json();
+                            errorMessage = `Error ${status}: ${errorData.message || 'Error desconocido del servidor.'}`;
+                        } catch (e) {
+                            // Fallback para cualquier otro error HTTP con cuerpo vacío
+                            errorMessage = `Error ${status}: El servidor devolvió un error inesperado.`;
+                        }
+                    }
+                    throw new Error(errorMessage);
+                }
+                const salida = await response.json();
+                
+                const detalleHTML = `
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información General</h6>
+                            <table class="table table-sm">
+                                <tr><th width="40%">Número de Salida:</th><td>${salida.numeroSalida}</td></tr>
+                                <tr><th>Fecha:</th><td>${formatearFecha(salida.fechaSalida)}</td></tr>
+                                <tr><th>Tipo de Salida:</th><td>${salida.tipoSalida}</td></tr>
+                                <tr><th>Tipo Comprobante:</th><td>${salida.tipoComprobante}</td></tr>
+                                <tr><th>Cliente:</th><td>${salida.nombreCliente || 'N/A'}</td></tr>
+                                <tr><th>Almacén:</th><td>${salida.nombreAlmacen}</td></tr>
+                                <tr><th>Estado:</th><td><span class="badge-status badge-${salida.estadoSalida.toLowerCase()}">${salida.estadoSalida}</span></td></tr>
+                                <tr><th>Registrado por:</th><td>${salida.nombreUsuario}</td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Resumen Financiero</h6>
+                            <div class="summary-box">
+                                <div class="summary-row">
+                                    <span>Subtotal:</span>
+                                    <strong>S/ ${parseFloat(salida.subtotal).toFixed(2)}</strong>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Impuestos:</span>
+                                    <strong>S/ ${parseFloat(salida.impuestos).toFixed(2)}</strong>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Descuentos:</span>
+                                    <strong>S/ ${parseFloat(salida.descuentos).toFixed(2)}</strong>
+                                </div>
+                                <div class="summary-row total">
+                                    <span>TOTAL:</span>
+                                    <strong>S/ ${parseFloat(salida.montoTotal).toFixed(2)}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="text-primary mb-3">Detalle de Items</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Item</th>
+                                    <th>Almacén</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unit.</th>
+                                    <th>Descuento</th>
+                                    <th>Impuesto</th>
+                                    <th>Subtotal</th>
+                                    <th>Lote</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${salida.detalles.map(detalle => `
+                                    <tr>
+                                        <td><span class="badge bg-info">${detalle.tipoItem}</span></td>
+                                        <td>${detalle.nombreItem}</td>
+                                        <td>${detalle.nombreAlmacen}</td>
+                                        <td class="text-center">${detalle.cantidad}</td>
+                                        <td class="text-end">S/ ${parseFloat(detalle.precioUnitario).toFixed(2)}</td>
+                                        <td class="text-end">S/ ${parseFloat(detalle.descuentoUnitario).toFixed(2)}</td>
+                                        <td class="text-end">S/ ${parseFloat(detalle.impuestoUnitario).toFixed(2)}</td>
+                                        <td class="text-end"><strong>S/ ${parseFloat(detalle.subtotalLinea).toFixed(2)}</strong></td>
+                                        <td>${detalle.lote || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                document.getElementById('detalleContent').innerHTML = detalleHTML;
+                
+                const modal = new bootstrap.Modal(document.getElementById('modalVerDetalle'));
+                modal.show();
+                
+            } catch (error) {
+                console.error('Error al cargar detalle:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'No se pudo cargar el detalle de la salida.'
+                });
+            }
+        }
+
+        // ============================================================
+        // ANULAR SALIDA
+        // ============================================================
+        function anularSalida(idSalida) {
+            Swal.fire({
+                title: '¿Anular esta salida?',
+                html: `
+                    <p>Esta acción anulará la salida y devolverá las cantidades al inventario.</p>
+                    <p class="text-danger"><strong>Esta acción no se puede deshacer.</strong></p>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, anular',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch(`/admin/salidas-inventario/anular/${idSalida}`, {
+                            method: 'PUT'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Salida anulada',
+                                text: data.message,
+                                timer: 2000
+                            }).then(() => {
+                                cargarSalidas();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error al anular salida:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo anular la salida'
+                        });
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // FUNCIONES AUXILIARES
+        // ============================================================
+        function formatearFecha(fecha) {
+            if (!fecha) return '-';
+            const date = new Date(fecha);
+            const dia = String(date.getDate()).padStart(2, '0');
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const año = date.getFullYear();
+            return `${dia}/${mes}/${año}`;
+        }
+
+        function formatearMoneda(valor) {
+            return `S/ ${parseFloat(valor).toFixed(2)}`;
+        }
+
+        function limpiarFormulario(formId) {
+            document.getElementById(formId).reset();
+        }
+
+        // ============================================================
+        // VALIDACIONES
+        // ============================================================
+        function validarCamposRequeridos(formId) {
+            const form = document.getElementById(formId);
+            const inputs = form.querySelectorAll('[required]');
+            let valido = true;
+            
+            inputs.forEach(input => {
+                if (!input.value || input.value.trim() === '') {
+                    valido = false;
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+            
+            return valido;
+        }
+
+        function validarStock(cantidad, stockDisponible) {
+            return cantidad > 0 && cantidad <= stockDisponible;
+        }
+
+        function validarFecha(fecha) {
+            const fechaSeleccionada = new Date(fecha);
+            const hoy = new Date();
+            return fechaSeleccionada <= hoy;
+        }
+
+        // ============================================================
+        // MANEJO DE ERRORES
+        // ============================================================
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje,
+                confirmButtonColor: '#6f42c1'
+            });
+        }
+
+        function mostrarExito(mensaje) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: mensaje,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+
+        function mostrarAdvertencia(mensaje) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atención',
+                text: mensaje,
+                confirmButtonColor: '#6f42c1'
+            });
+        }
+
+        // ============================================================
+        // UTILIDADES DE INTERFAZ
+        // ============================================================
+        function mostrarCargando(mensaje = 'Cargando...') {
+            Swal.fire({
+                title: mensaje,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+
+        function cerrarCargando() {
+            Swal.close();
+        }
+
+        // ============================================================
+        // EVENTOS ADICIONALES
+        // ============================================================
+
+        // Cerrar modales al presionar ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const modals = document.querySelectorAll('.modal.show');
+                modals.forEach(modal => {
+                    const modalInstance = bootstrap.Modal.getInstance(modal);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                });
+            }
+        });
+
+        // Prevenir envío de formularios con Enter
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+            });
+        });
+
+        // Limpiar modales al cerrar
+        document.getElementById('modalNuevaSalida')?.addEventListener('hidden.bs.modal', function() {
+            itemsTemporales = [];
+            document.getElementById('formNuevaSalida').reset();
+            document.getElementById('itemsList').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <p>No hay items agregados. Haz clic en "Agregar Item" para comenzar.</p>
+                </div>
+            `;
+        });
+
+        document.getElementById('modalAgregarItem')?.addEventListener('hidden.bs.modal', function() {
+            document.getElementById('formAgregarItem').reset();
+        });
+
+        // ============================================================
+        // INICIALIZACIÓN DE TOOLTIPS (Bootstrap)
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        // ============================================================
+        // FUNCIONES DE BÚSQUEDA Y FILTRADO
+        // ============================================================
+        function buscarEnTabla(texto) {
+            const filas = document.querySelectorAll('#tablaSalidas tr');
+            texto = texto.toLowerCase();
+            
+            filas.forEach(fila => {
+                const contenido = fila.textContent.toLowerCase();
+                if (contenido.includes(texto)) {
+                    fila.style.display = '';
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+        }
+
+        // ============================================================
+        // EXPORTAR TODAS LAS SALIDAS
+        // ============================================================
+        async function exportarTodasSalidas() {
+            try {
+                mostrarCargando('Generando reporte...');
+                
+                const params = obtenerValoresFiltros();
+                const response = await fetch(`/admin/salidas-inventario/exportar-reporte?${params}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al generar reporte');
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Reporte_Salidas_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reporte generado',
+                    text: 'El reporte se descargó correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+            } catch (error) {
+                console.error('Error al exportar reporte:', error);
+                mostrarError('No se pudo generar el reporte');
+            }
+        }
+
+        // ============================================================
+        // IMPRESIÓN
+        // ============================================================
+        function imprimirDetalle(idSalida) {
+            // Esta función puede implementarse para imprimir directamente
+            window.open(`/admin/salidas-inventario/imprimir/${idSalida}`, '_blank');
+        }
+
+        // ============================================================
+        // REFRESH AUTOMÁTICO (OPCIONAL)
+        // ============================================================
+        let autoRefreshInterval = null;
+
+        function iniciarAutoRefresh(segundos = 30) {
+            detenerAutoRefresh();
+            autoRefreshInterval = setInterval(() => {
+                cargarSalidas();
+            }, segundos * 1000);
+        }
+
+        function detenerAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        // ============================================================
+        // ESTADÍSTICAS RÁPIDAS (OPCIONAL)
+        // ============================================================
+        async function cargarEstadisticas() {
+            try {
+                const response = await fetch('/admin/salidas-inventario/estadisticas');
+                const stats = await response.json();
+                
+                // Actualizar elementos de estadísticas en el DOM
+                if (document.getElementById('totalSalidasHoy')) {
+                    document.getElementById('totalSalidasHoy').textContent = stats.salidasHoy;
+                }
+                if (document.getElementById('montoTotalHoy')) {
+                    document.getElementById('montoTotalHoy').textContent = formatearMoneda(stats.montoHoy);
+                }
+                if (document.getElementById('salidasPendientes')) {
+                    document.getElementById('salidasPendientes').textContent = stats.pendientes;
+                }
+            } catch (error) {
+                console.error('Error al cargar estadísticas:', error);
+            }
+        }
+
+        // ============================================================
+        // MANEJO DE CONEXIÓN
+        // ============================================================
+        window.addEventListener('online', function() {
+            mostrarExito('Conexión restaurada');
+            cargarSalidas();
+        });
+
+        window.addEventListener('offline', function() {
+            mostrarAdvertencia('Sin conexión a internet');
+        });
+
+        // ============================================================
+        // LOGS Y DEBUG (Remover en producción)
+        // ============================================================
+        function debug(mensaje, data = null) {
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.log(`[DEBUG] ${mensaje}`, data);
+            }
+        }
+
+        // ============================================================
+        // FINALIZACIÓN
+        // ============================================================
+        console.log('Script de Salidas de Inventario cargado correctamente');
+        debug('Sistema inicializado', { currentPage, pageSize, filtrosActivos });
+
+    </script>

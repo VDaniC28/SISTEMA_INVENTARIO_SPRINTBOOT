@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Administración - Inventario</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f2f6ff;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 10px;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .sidebar img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logout-btn i {
+            margin-right: 5px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 40px;
+        }
+
+        
+                /* Estilos específicos para la vista de proveedores */
+        .proveedores-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        .proveedores-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .proveedores-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e2a49;
+            margin: 0;
+        }
+
+        .btn-registrar {
+            background-color: #6d3c7c;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+
+        .proveedores-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .proveedores-table th {
+            background-color: #f8f9fa;
+            color: #333;
+            font-weight: 600;
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+            font-size: 14px;
+        }
+
+        .proveedores-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .proveedores-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-editar {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-eliminar {
+            background-color: #dc3545;
+            color: white;
+            margin-top: 0.5rem;
+        }
+
+        .estado-activo {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .estado-inactivo {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        /* Estilos del modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e2a49;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            background-color: #158538;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .field-error {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div>
+        <a href="/admin/vistaAdmin">
+            <img src="/images/Logo.png" alt="Logo">
+        </a>
+        <h2>SISTEMA INVENTARIO</h2>
+    </div>  
+    <form action="/logout" method="post">
+        <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </form>
+</div>
+
+<div class="main">
+    <!-- Contenedor de Proveedores -->
+    <div class="proveedores-container">
+        <div class="proveedores-header">
+            <h2 class="proveedores-title"><i class="fa-solid fa-truck"></i>Gestión de Proveedores</h2>
+            <button class="btn-registrar" onclick="abrirModalRegistro()">
+                <i class="fas fa-plus"></i> Registrar Proveedor
+            </button>
+        </div>
+
+        <!-- Mensajes -->
+        <div id="successMessage" class="success-message"></div>
+        
+        <!-- Loading -->
+        <div id="loading" class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Cargando...
+        </div>
+
+        <!-- Tabla de proveedores -->
+        <div id="tablaContainer">
+            <table id="tablaProveedores" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Tipo Doc.</th>
+                        <th>N° Documento</th>
+                        <th>Tipo Persona</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Estado</th>
+                        <th>Fecha Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Los datos se cargarán dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <i class="fas fa-users-slash"></i>
+            <h3>No hay proveedores registrados</h3>
+            <p>Comienza agregando tu primer proveedor</p>
+        </div>
+    </div>
+
+    <!-- Modal para registrar/editar proveedor -->
+    <div id="modalProveedor" class="modal">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h3 class="modal-title text-white" id="modalTitle">Registrar Proveedor</h3>
+                <span class="close" onclick="cerrarModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="formProveedor">
+                    <input type="hidden" id="proveedorId" name="idProveedor">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="nombreProveedor">Nombre del Proveedor *</label>
+                        <input type="text" class="form-control" id="nombreProveedor" name="nombreProveedor" maxlength="150" required>
+                        <div class="field-error" id="errorNombre"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label" for="tipoDocumento">Tipo de Documento *</label>
+                                <select class="form-control" id="tipoDocumento" name="tipoDocumento" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="DNI">DNI</option>
+                                    <option value="RUC">RUC</option>
+                                </select>
+                                <div class="field-error" id="errorTipoDoc"></div>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label" for="numeroDocumento">Número de Documento *</label>
+                                <input type="text" class="form-control" id="numeroDocumento" name="numeroDocumento" maxlength="11" required>
+                                <div class="field-error" id="errorNumDoc"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="tipoPersona">Tipo de Persona *</label>
+                        <select class="form-control" id="tipoPersona" name="tipoPersona" required>
+                            <option value="">Seleccionar</option>
+                            <option value="NATURAL">Natural</option>
+                            <option value="JURIDICA">Jurídica</option>
+                        </select>
+                        <div class="field-error" id="errorTipoPersona"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email" maxlength="300" required>
+                        <div class="field-error" id="errorEmail"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label" for="telefono">Teléfono</label>
+                                <input type="text" class="form-control" id="telefono" name="telefono" maxlength="13">
+                                <div class="field-error" id="errorTelefono"></div>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label" for="estado">Estado</label>
+                                <select class="form-control" id="estado" name="estado">
+                                    <option value="true">Activo</option>
+                                    <option value="false">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="direccion">Dirección</label>
+                        <textarea class="form-control" id="direccion" name="direccion" rows="3" maxlength="200"></textarea>
+                        <div class="field-error" id="errorDireccion"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer "style="background-color: black;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                <button type="button" class="btn-primary" id="btnGuardar" onclick="guardarProveedor()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="none">
+        let tabla;
+        let modoEdicion = false;
+
+        // Inicializar cuando el documento esté listo
+        $(document).ready(function() {
+            inicializarTabla();
+            cargarProveedores();
+            configurarValidaciones();
+        });
+
+        // Inicializar DataTable
+        function inicializarTabla() {
+            tabla = $('#tablaProveedores').DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                responsive: true,
+                order: [[0, 'desc']],
+                columnDefs: [
+                    { targets: [9], orderable: false },
+                    { targets: [0], visible: false }
+                ],
+                pageLength: 10,
+                dom: 'Bfrtip',
+                buttons: []
+            });
+        }
+
+        // Cargar proveedores desde el servidor
+        async function cargarProveedores() {
+            try {
+                mostrarLoading(true);
+                const response = await fetch('/admin/proveedores/api/todos');
+                const proveedores = await response.json();
+                
+                mostrarLoading(false);
+                llenarTabla(proveedores);
+                
+            } catch (error) {
+                console.error('Error al cargar proveedores:', error);
+                mostrarLoading(false);
+                mostrarMensaje('Error al cargar los proveedores', 'error');
+            }
+        }
+
+        // Llenar la tabla con los datos
+        function llenarTabla(proveedores) {
+            tabla.clear();
+            
+            if (proveedores.length === 0) {
+                $('#tablaContainer').hide();
+                $('#emptyState').show();
+                return;
+            }
+            
+            $('#tablaContainer').show();
+            $('#emptyState').hide();
+            
+            proveedores.forEach(proveedor => {
+                const fila = [
+                    proveedor.idProveedor,
+                    proveedor.nombreProveedor,
+                    proveedor.tipoDocumento,
+                    proveedor.numeroDocumento,
+                    proveedor.tipoPersona,
+                    proveedor.email,
+                    proveedor.telefono || '-',
+                    proveedor.estado ? 
+                        '<span class="estado-activo">Activo</span>' : 
+                        '<span class="estado-inactivo">Inactivo</span>',
+                    formatearFecha(proveedor.fechaRegistro),
+                    generarBotonesAccion(proveedor)
+                ];
+                tabla.row.add(fila);
+            });
+            
+            tabla.draw();
+        }
+
+        // Generar botones de acción
+        function generarBotonesAccion(proveedor) {
+            return `
+                <button class="btn-action btn-editar" onclick="editarProveedor(${proveedor.idProveedor})" title="Editar">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-action btn-eliminar" onclick="confirmarEliminacion(${proveedor.idProveedor}, '${proveedor.nombreProveedor}')" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+        }
+
+        // Formatear fecha
+        function formatearFecha(fechaString) {
+            const fecha = new Date(fechaString);
+            return fecha.toLocaleDateString('es-PE', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Abrir modal para registro
+        function abrirModalRegistro() {
+            modoEdicion = false;
+            $('#modalTitle').text('Registrar Proveedor');
+            $('#btnGuardar').text('Guardar');
+            $('#formProveedor')[0].reset();
+            $('#proveedorId').val('');
+            $('#estado').val('true');
+            limpiarErrores();
+            $('#modalProveedor').show();
+        }
+
+        // Hacerla global
+        window.abrirModalRegistro = abrirModalRegistro;
+
+        // Editar proveedor
+        async function editarProveedor(id) {
+            try {
+                const response = await fetch(`/admin/proveedores/api/${id}`);
+                if (!response.ok) throw new Error('Proveedor no encontrado');
+                
+                const proveedor = await response.json();
+                
+                modoEdicion = true;
+                $('#modalTitle').text('Editar Proveedor');
+                $('#btnGuardar').text('Actualizar');
+                
+                // Llenar el formulario
+                $('#proveedorId').val(proveedor.idProveedor);
+                $('#nombreProveedor').val(proveedor.nombreProveedor);
+                $('#tipoDocumento').val(proveedor.tipoDocumento);
+                $('#numeroDocumento').val(proveedor.numeroDocumento);
+                $('#tipoPersona').val(proveedor.tipoPersona);
+                $('#email').val(proveedor.email);
+                $('#telefono').val(proveedor.telefono || '');
+                $('#direccion').val(proveedor.direccion || '');
+                $('#estado').val(proveedor.estado.toString());
+                
+                limpiarErrores();
+                $('#modalProveedor').show();
+                
+            } catch (error) {
+                console.error('Error al cargar proveedor:', error);
+                mostrarMensaje('Error al cargar los datos del proveedor', 'error');
+            }
+        }
+        window.editarProveedor = editarProveedor;
+
+        // Guardar proveedor
+        async function guardarProveedor() {
+            if (!validarFormulario()) return;
+            
+            const formData = new FormData($('#formProveedor')[0]);
+            const proveedor = Object.fromEntries(formData.entries());
+            
+            // Convertir estado a boolean
+            proveedor.estado = proveedor.estado === 'true';
+            
+            try {
+                $('#btnGuardar').disabled = true;
+                $('#btnGuardar').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+                
+                const url = modoEdicion ? 
+                    `/admin/proveedores/api/actualizar/${proveedor.idProveedor}` : 
+                    '/admin/proveedores/api/guardar';
+                    
+                const method = modoEdicion ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(proveedor)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    cerrarModal();
+                    mostrarMensaje(result.message, 'success');
+                    await cargarProveedores();
+                } else {
+                    mostrarMensaje(result.message, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error al guardar proveedor:', error);
+                mostrarMensaje('Error al guardar el proveedor', 'error');
+            } finally {
+                $('#btnGuardar').disabled = false;
+                $('#btnGuardar').text(modoEdicion ? 'Actualizar' : 'Guardar');
+            }
+        }
+
+        window.guardarProveedor = guardarProveedor;
+
+        // Confirmar eliminación
+        function confirmarEliminacion(id, nombre) {
+            if (confirm(`¿Quieres eliminar al proveedor "${nombre}"?`)) {
+                eliminarProveedor(id);
+            }
+        }
+
+        window.confirmarEliminacion = confirmarEliminacion;
+
+        // Eliminar proveedor
+        async function eliminarProveedor(id) {
+            try {
+                const response = await fetch(`/admin/proveedores/api/eliminar/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarMensaje(result.message, 'success');
+                    await cargarProveedores();
+                } else {
+                    mostrarMensaje(result.message, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error al eliminar proveedor:', error);
+                mostrarMensaje('Error al eliminar el proveedor', 'error');
+            }
+        }
+
+        // Cerrar modal
+        function cerrarModal() {
+            $('#modalProveedor').hide();
+            $('#formProveedor')[0].reset();
+            limpiarErrores();
+        }
+
+        window.cerrarModal = cerrarModal;
+
+        // Configurar validaciones
+        function configurarValidaciones() {
+            // Validar tipo de documento y longitud
+            $('#tipoDocumento, #numeroDocumento').on('input change', function() {
+                const tipoDoc = $('#tipoDocumento').val();
+                const numDoc = $('#numeroDocumento').val();
+                
+                if (tipoDoc === 'DNI') {
+                    $('#numeroDocumento').attr('maxlength', 8);
+                    if (numDoc.length > 8) {
+                        $('#numeroDocumento').val(numDoc.substring(0, 8));
+                    }
+                } else if (tipoDoc === 'RUC') {
+                    $('#numeroDocumento').attr('maxlength', 11);
+                    if (numDoc.length > 11) {
+                        $('#numeroDocumento').val(numDoc.substring(0, 11));
+                    }
+                }
+            });
+
+            // Solo números en documento y teléfono
+            $('#numeroDocumento, #telefono').on('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+
+            // Cerrar modal al hacer clic fuera
+            $(window).on('click', function(event) {
+                if (event.target.id === 'modalProveedor') {
+                    cerrarModal();
+                }
+            });
+        }
+
+        // Validar formulario
+        function validarFormulario() {
+            limpiarErrores();
+            let valido = true;
+
+            // Validar nombre
+            const nombre = $('#nombreProveedor').val().trim();
+            if (!nombre) {
+                mostrarError('errorNombre', 'El nombre es obligatorio');
+                valido = false;
+            } else if (nombre.length > 150) {
+                mostrarError('errorNombre', 'El nombre no puede exceder 150 caracteres');
+                valido = false;
+            }
+
+            // Validar tipo documento
+            const tipoDoc = $('#tipoDocumento').val();
+            if (!tipoDoc) {
+                mostrarError('errorTipoDoc', 'Debe seleccionar un tipo de documento');
+                valido = false;
+            }
+
+            // Validar número documento
+            const numDoc = $('#numeroDocumento').val().trim();
+            if (!numDoc) {
+                mostrarError('errorNumDoc', 'El número de documento es obligatorio');
+                valido = false;
+            } else if (tipoDoc === 'DNI' && numDoc.length !== 8) {
+                mostrarError('errorNumDoc', 'El DNI debe tener exactamente 8 dígitos');
+                valido = false;
+            } else if (tipoDoc === 'RUC' && numDoc.length !== 11) {
+                mostrarError('errorNumDoc', 'El RUC debe tener exactamente 11 dígitos');
+                valido = false;
+            }
+
+            // Validar tipo persona
+            const tipoPersona = $('#tipoPersona').val();
+            if (!tipoPersona) {
+                mostrarError('errorTipoPersona', 'Debe seleccionar un tipo de persona');
+                valido = false;
+            }
+
+            // Validar email
+            const email = $('#email').val().trim();
+            const emailRegex = /^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})$/;
+            if (!email) {
+                mostrarError('errorEmail', 'El email es obligatorio');
+                valido = false;
+            } else if (!emailRegex.test(email)) {
+                mostrarError('errorEmail', 'El formato del email no es válido');
+                valido = false;
+            } else if (email.length > 300) {
+                mostrarError('errorEmail', 'El email no puede exceder 300 caracteres');
+                valido = false;
+            }
+
+            // Validar teléfono (opcional)
+            const telefono = $('#telefono').val().trim();
+            if (telefono && telefono.length > 13) {
+                mostrarError('errorTelefono', 'El teléfono no puede exceder 13 caracteres');
+                valido = false;
+            }
+
+            // Validar dirección (opcional)
+            const direccion = $('#direccion').val().trim();
+            if (direccion && direccion.length > 200) {
+                mostrarError('errorDireccion', 'La dirección no puede exceder 200 caracteres');
+                valido = false;
+            }
+
+            return valido;
+        }
+
+        // Mostrar error
+        function mostrarError(elementId, mensaje) {
+            $(`#${elementId}`).text(mensaje).show();
+        }
+
+        // Limpiar errores
+        function limpiarErrores() {
+            $('.field-error').hide().text('');
+        }
+
+        // Mostrar loading
+        function mostrarLoading(mostrar) {
+            if (mostrar) {
+                $('#loading').show();
+                $('#tablaContainer').hide();
+            } else {
+                $('#loading').hide();
+                $('#tablaContainer').show();
+            }
+        }
+
+        // Mostrar mensaje
+        function mostrarMensaje(mensaje, tipo) {
+            const elemento = $('#successMessage');
+            elemento.removeClass('success-message error-message');
+            elemento.addClass(tipo === 'success' ? 'success-message' : 'error-message');
+            elemento.text(mensaje).show();
+            
+            setTimeout(() => {
+                elemento.hide();
+            }, 5000);
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Usuarios y Roles</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="/css/all.min.css">
+  <style>
+    * {
+     box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      background-color: #f2f6ff;
+    }
+
+    .sidebar {
+      width: 200px;
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 10px;
+      border-right: 1px solid #ddd;
+    }
+
+    .sidebar h2 {
+      font-size: 1.5em;
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .sidebar img {
+      width: 100%;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .logout-btn {
+      background-color: #dc3545;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .logout-btn i {
+      margin-right: 5px;
+    }
+
+    .main {
+      flex: 1;
+      padding: 40px;
+      overflow-y: auto;
+    }
+
+    .main h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #1e2a49;
+    }
+
+    .panel {
+      background-color: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-top: 30px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .panel-header h2 {
+      font-size: 22px;
+      color: #333;
+    }
+
+    .btn-nuevo {
+      background-color: #6d3c7c;
+      color: #ffffff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-edit {
+      background-color: #007bff;
+    }
+
+    .btn-delete {
+      background-color: #dc3545;
+    }
+
+    .btn i {
+      margin-right: 5px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      background-color: rgba(0,0,0,0.5);
+      top: 0; left: 0; right: 0; bottom: 0;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      min-width: 300px;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+    .btn-rol {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      margin-left: 4px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-rol i {
+      margin-right: 5px;
+    }
+
+    #modalNuevoUsuario .modal-content input[type="text"],
+    #modalNuevoUsuario .modal-content input[type="email"],
+    #modalNuevoUsuario .modal-content input[type="password"],
+    #modalNuevoUsuario .modal-content select {
+      border: 1px solid #ccc; /* Un borde sutil */
+       border-radius: 6px; /* Bordes ligeramente redondeados */
+      padding: 8px; /* Espacio interior para mejor apariencia */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Sombreado suave */
+    }
+
+
+    #modalNuevoUsuario .modal-content input[type="text"]:focus,
+    #modalNuevoUsuario .modal-content input[type="email"]:focus,
+    #modalNuevoUsuario .modal-content input[type="password"]:focus,
+    #modalNuevoUsuario .modal-content select:focus {
+      outline: none; /* Elimina el borde de enfoque predeterminado del navegador */
+      border-color: #007bff; /* Cambia el color del borde al enfocar */
+      box-shadow: 0 2px 6px rgba(0, 123, 255, 0.25); /* Sombreado más pronunciado al enfocar */
+    }
+
+
+    #modalEditarUsuario .modal-content input[type="text"],
+    #modalEditarUsuario .modal-content input[type="email"],
+    #modalEditarUsuario .modal-content input[type="password"],
+    #modalEditarUsuario .modal-content select {
+      border: 1px solid #ccc; /* Un borde sutil */
+      border-radius: 6px; /* Bordes ligeramente redondeados */
+      padding: 8px; /* Espacio interior para mejor apariencia */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Sombreado suave */
+    }
+
+    #modalEditarUsuario .modal-content input[type="text"]:focus,
+    #modalEditarUsuario .modal-content input[type="email"]:focus,
+    #modalEditarUsuario .modal-content input[type="password"]:focus,
+    #modalEditarUsuario .modal-content select:focus {
+      outline: none; /* Elimina el borde de enfoque predeterminado del navegador */
+      border-color: #007bff; /* Cambia el color del borde al enfocar */
+      box-shadow: 0 2px 6px rgba(0, 123, 255, 0.25); /* Sombreado más pronunciado al enfocar */
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div>
+      <a href="/admin/vistaAdmin">
+        <img src="/images/Logo.png" alt="Logo">
+      </a>
+      <h2>SISTEMA INVENTARIO</h2>
+    </div>
+    <form action="/logout" method="post">
+      <button class="logout-btn" type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </form>
+   </div>
+
+  <div class="main">
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2><i class="fas fa-users-gear"></i> Gestión de Usuarios</h2>
+        <button class="btn-nuevo" onclick="abrirModalNuevo()">
+          <i class="fas fa-user-plus"></i> Registrar Nuevo Usuario
+        </button>
+      </div>
+
+      <table id="tablaUsuarios" class="display">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Estado</th>
+            <th>Fecha de Registro</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="usuario : ${usuarios}">
+            <td th:text="${usuario.idUsuario}"></td>
+            <td th:text="${usuario.username}"></td>
+            <td th:text="${usuario.email}"></td>
+             <td th:text="${usuario.estado ? 'Activo' : 'Inactivo'}"></td>
+            <td th:text="${#dates.format(usuario.fechaRegistro, 'dd/MM/yyyy')}"></td>
+             <td>
+              <button 
+                class="btn btn-edit editar-btn"
+              th:attr="data-id=${usuario.idUsuario}, data-username=${usuario.username}, data-email=${usuario.email}, data-estado=${usuario.estado}"
+              onclick="abrirModalEditar(this)">
+              <i class="fas fa-edit"></i> Editar
+              </button>
+              <form th:action="@{/admin/usuarios/eliminar/{id}(id=${usuario.idUsuario})}" method="post" style="display:inline;">
+                <button class="btn btn-delete" type="submit" onclick="return confirm('¿Estás seguro de eliminar este cliente?')"><i class="fas fa-trash"></i> Eliminar</button>
+              </form>
+                  <button class="btn btn-rol" type="button"
+                    th:attr="data-id=${usuario.idUsuario}"
+                    onclick="abrirModalRoles(this)">
+               <i class="fas fa-user-shield"></i> Rol
+            </button>
+
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h2><i class="fas fa-user-tag"></i> Gestión de Roles</h2>
+            <button id="openModalBtnRoles" class="btn-nuevo">
+                <i class="fas fa-plus"></i> Agregar Rol
+            </button>
+        </div>
+
+        <table id="tablaRoles" class="display">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre del Rol</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="rol : ${roles}">
+                    <td th:text="${rol.idRol}"></td>
+                    <td th:text="${rol.nombre}"></td>
+                    <td>
+                        <form th:action="@{/admin/roles/eliminar/{id}(id=${rol.idRol})}" method="post" style="display:inline;">
+                            <input type="hidden" name="_method" value="delete"/>
+                            <button type="submit" class="btn btn-delete" onclick="return confirm('¿Estás seguro de eliminar este rol?')">
+                                <i class="fas fa-trash"></i>Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+<div id="modalNuevoUsuario" class="modal">
+  <div class="modal-content">
+    <h3 style="margin-top: 0;">Registrar Nuevo Usuario</h3>
+    <form method="post" th:action="@{/admin/usuarios/guardar}">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <label>Username:</label>
+        <input type="text" name="username" required>
+
+        <label>Email:</label>
+        <input type="email" name="email" required>
+
+        <label>Contraseña:</label>
+        <input type="password" name="password" required>
+
+        <label>Estado:</label>
+        <select name="estado" required>
+          <option value="true">Activo</option>
+          <option value="false">Inactivo</option>
+        </select>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button type="submit" class="btn btn-success" style="background-color: #28a745;">Registrar</button>
+        <button type="button" class="btn btn-primary" style="background-color: #007bff;" onclick="cerrarModal('modalNuevoUsuario')">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modalEditarUsuario" class="modal">
+   <div class="modal-content">
+      <div style="background-color: #222; color: #eee; padding: 15px; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+          <h3 style="margin-top: 0; margin-bottom: 0;">Editar Usuario</h3>
+ 
+      </div>
+      <form method="post" th:action="@{/admin/usuarios/actualizar}">
+          <input type="hidden" id="editIdUsuario" name="idUsuario">
+
+            <div style="display: flex; flex-direction: column; gap: 10px; padding: 20px;">
+              <label>Username:</label>
+              <input type="text" id="editUsername" name="username" required>
+
+              <label>Email:</label>
+              <input type="email" id="editEmail" name="email" required>
+
+              <label>Contraseña:</label>
+              <input type="password" id="editPassword" name="password" placeholder="Nueva contraseña (opcional)">
+
+              <label>Estado:</label>
+              <select id="editEstado" name="estado" required>
+                  <option value="true">Activo</option>
+                  <option value="false">Inactivo</option>
+              </select>
+          </div>
+
+          <div style="background-color: #222; padding: 15px; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+              <button type="submit" class="btn btn-success" style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">Guardar</button>
+              <button type="button" class="btn btn-primary" style="background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;" onclick="cerrarModal('modalEditarUsuario')">Cancelar</button>
+          </div>
+      </form>
+  </div>
+</div>
+
+<div id="modalRoles" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width: 500px; margin: auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+    <h2 style="text-align: center;">Asignar Roles</h2>
+    <form id="formRoles" method="post" action="/admin/usuarios/asignar-roles">
+      <input type="hidden" id="usuarioIdRol" name="idUsuario">
+        <div id="rolesContainer" style="margin: 20px 0;">
+          </div>
+      <div style="text-align: right;">
+          <button type="submit" style="background-color:#007bff;color:white;padding:8px 16px;border:none;border-radius:6px;">Guardar</button>
+         <button type="button" onclick="cerrarModalRoles()" style="margin-left:10px;padding:8px 16px;">Cancelar</button>
+      </div>
+    </form>
+   </div>
+</div>
+
+<div id="modalNuevoRol" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">Agregar Nuevo Rol</div>
+        <form action="/admin/roles/guardar" method="post">
+            <input type="text" name="nombre" placeholder="Nombre del Rol" required style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 20px;">
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="cancelBtnRol">Cancelar</button>
+                <button type="submit" class="btn-save">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#tablaUsuarios').DataTable();
+        $('#tablaRoles').DataTable();
+    });
+
+    // Abrir modal para nuevo usuario
+    function abrirModalNuevo() {
+        document.getElementById('modalNuevoUsuario').classList.add('active');
+    }
+
+    // Abrir modal para editar usuario
+    function abrirModalEditar(btn) {
+        document.getElementById('modalEditarUsuario').classList.add('active');
+        document.getElementById('editIdUsuario').value = btn.getAttribute('data-id');
+        document.getElementById('editUsername').value = btn.getAttribute('data-username');
+        document.getElementById('editEmail').value = btn.getAttribute('data-email');
+        document.getElementById('editEstado').value = btn.getAttribute('data-estado');
+    }
+
+    // Cerrar cualquier modal
+    function cerrarModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+    
+    // Abrir modal para asignar roles (usuarios)
+    function abrirModalRoles(button) {
+        const idUsuario = button.getAttribute('data-id');
+        document.getElementById('usuarioIdRol').value = idUsuario;
+
+        fetch(`/admin/usuarios/roles/${idUsuario}`)
+            .then(response => response.json())
+            .then(data => {
+                const rolesContainer = document.getElementById('rolesContainer');
+                rolesContainer.innerHTML = '';
+                data.todosRoles.forEach(rol => {
+                    const checked = data.rolesAsignados.includes(rol.nombre) ? 'checked' : '';
+                    rolesContainer.innerHTML += `
+                        <div>
+                            <label>
+                                <input type="checkbox" name="roles" value="${rol.idRol}" ${checked}> ${rol.nombre}
+                            </label>
+                        </div>`;
+                });
+                document.getElementById('modalRoles').style.display = 'flex';
+            });
+    }
+
+    function cerrarModalRoles() {
+        document.getElementById('modalRoles').style.display = 'none';
+    }
+
+    // Nuevo JavaScript para el modal de roles
+    const modalRol = document.getElementById("modalNuevoRol");
+    const openModalBtnRol = document.getElementById("openModalBtnRoles");
+    const cancelBtnRol = document.getElementById("cancelBtnRol");
+
+    openModalBtnRol.onclick = function() {
+        modalRol.style.display = "flex";
+    }
+
+    cancelBtnRol.onclick = function() {
+        modalRol.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modalRol) {
+            modalRol.style.display = "none";
+        }
+    }
+</script>
+
+</body>
+</html>
